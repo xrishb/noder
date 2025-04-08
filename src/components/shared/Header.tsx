@@ -82,6 +82,7 @@ const Header: React.FC = () => {
             <Link to="/" className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 hover:text-shadow text-sm font-medium">Home</Link>
             <Link to="/projects" className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 hover:text-shadow text-sm font-medium">Projects</Link>
             <Link to="/roadmap" className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 hover:text-shadow text-sm font-medium">Roadmap</Link>
+            <Link to="/issues" className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 hover:text-shadow text-sm font-medium">Issues</Link>
             
             {currentUser ? (
               <div className="relative">
@@ -159,6 +160,13 @@ const Header: React.FC = () => {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Roadmap
+              </Link>
+              <Link 
+                to="/issues" 
+                className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 py-2 px-3 rounded-lg hover:bg-white/5"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Issues
               </Link>
               
               {currentUser ? (

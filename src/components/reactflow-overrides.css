@@ -1,0 +1,14 @@
+/* Hide ReactFlow attribution text */
+.react-flow__attribution {
+  display: none !important;
+}
+
+/* Also apply this to any possible variation */
+[data-reactflow-attribution] {
+  display: none !important;
+}
+
+/* Additional selector to ensure it gets hidden */
+.react-flow__container .react-flow__attribution {
+  display: none !important;
+} 

@@ -6,6 +6,7 @@ import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
 import ProjectDashboard from './components/projects/ProjectDashboard';
 import RoadmapPage from './components/RoadmapPage';
+import IssuesPage from './components/IssuesPage';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -20,6 +21,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/roadmap" element={<RoadmapPage />} />
+            <Route path="/issues" element={<IssuesPage />} />
             
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
