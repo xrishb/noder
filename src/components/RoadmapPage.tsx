@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from './shared/Header';
-import { LuSquare, LuLayers, LuBrainCircuit, LuPuzzle, LuRocket, LuLightbulb, LuCheck, LuArrowRight, LuCode, LuBox, LuSparkles, LuUsers, LuGlobe, LuGithub } from 'react-icons/lu';
+import { LuSquare, LuLayers, LuBrainCircuit, LuPuzzle, LuRocket, LuLightbulb, LuCheck, LuArrowRight, LuCode, LuBox, LuSparkles, LuUsers, LuGlobe, LuGithub, LuCalendar } from 'react-icons/lu';
 
 // Interface for roadmap phases
 interface RoadmapPhase {
@@ -8,6 +8,7 @@ interface RoadmapPhase {
   title: string;
   description: string;
   icon: React.ReactNode;
+  date?: string;
   items: RoadmapItem[];
 }
 
@@ -15,6 +16,7 @@ interface RoadmapPhase {
 interface RoadmapItem {
   text: string;
   completed: boolean;
+  date?: string;
   subItems?: RoadmapItem[];
 }
 
@@ -35,153 +37,208 @@ const RoadmapPage: React.FC = () => {
   const roadmapPhases: RoadmapPhase[] = [
     {
       id: 'phase0',
-      title: 'Phase 0: Landing Page & Authentication',
-      description: 'Building the initial user interface and authentication system',
+      title: 'Project Initialization',
+      description: 'The beginning of the Noder project',
       icon: <LuLayers className="w-10 h-10 text-secondary-400" />,
+      date: 'November 3, 2024',
       items: [
         {
-          text: 'Landing Page',
+          text: 'Project Initialized',
           completed: true,
+          date: 'November 3, 2024',
           subItems: [
-            { text: 'Create a clean, visually appealing home page', completed: true },
-            { text: 'Include key features/benefits overview', completed: true },
-            { text: 'Implement navigation to project dashboard', completed: true },
-            { text: 'Responsive design for all devices', completed: true }
+            { text: 'Basic project structure created', completed: true },
+            { text: 'Initial planning and research', completed: true }
           ]
         },
         {
-          text: 'Authentication',
-          completed: false,
+          text: 'Basic Prototype of Editor Layout',
+          completed: true,
+          date: 'November 13, 2024',
           subItems: [
-            { text: 'User signup with email validation', completed: false },
-            { text: 'Secure login functionality', completed: false },
-            { text: 'Password reset flow', completed: false },
-            { text: 'Authentication state management', completed: false },
-            { text: 'Protected routes for authenticated users', completed: false }
+            { text: 'Initial UI components created', completed: true },
+            { text: 'Basic layout structure established', completed: true }
+          ]
+        },
+        {
+          text: 'Enhanced Editor Layout Concept',
+          completed: true,
+          date: 'November 17, 2024',
+          subItems: [
+            { text: 'Improved UI design', completed: true },
+            { text: 'Better component organization', completed: true }
+          ]
+        },
+        {
+          text: 'Tech Stack Research',
+          completed: true,
+          date: 'November 20, 2024',
+          subItems: [
+            { text: 'Evaluated different frameworks and libraries', completed: true },
+            { text: 'Selected optimal tech stack for the project', completed: true }
           ]
         }
       ]
     },
     {
       id: 'phase1',
-      title: 'Phase 1: Project-Based Structure & Basic Editing',
-      description: 'Implementing project management and blueprint file handling',
+      title: 'Development Phase 1',
+      description: 'Initial development and core features',
       icon: <LuBrainCircuit className="w-10 h-10 text-primary-400" />,
+      date: 'November 22, 2024',
       items: [
         {
-          text: 'Project Management UI',
+          text: 'React + Tailwind Project Initialized',
           completed: true,
+          date: 'November 22, 2024',
           subItems: [
-            { text: 'Landing page displaying a list of projects', completed: true },
-            { text: 'Ability to create new projects (with names)', completed: true },
-            { text: 'Ability to delete projects', completed: true },
-            { text: 'Ability to open a project', completed: true }
+            { text: 'Set up development environment', completed: true },
+            { text: 'Configured build tools and dependencies', completed: true }
           ]
         },
         {
-          text: 'Blueprint File Management',
+          text: 'Home Page Created',
           completed: true,
+          date: 'December 7, 2024',
           subItems: [
-            { text: 'View listing blueprint files within the selected project', completed: true },
-            { text: 'Save generated blueprints as named files within the current project', completed: true },
-            { text: 'Ability to open a specific blueprint file in the editor', completed: true },
-            { text: 'Ability to delete blueprint files', completed: true }
+            { text: 'Designed and implemented landing page', completed: true },
+            { text: 'Added key features and benefits section', completed: true }
           ]
         },
         {
-          text: 'Data Persistence',
-          completed: false,
+          text: 'Roadmap Page Created',
+          completed: true,
+          date: 'December 12, 2024',
           subItems: [
-            { text: 'Use Browser Local Storage to save/load project and blueprint data', completed: false }
+            { text: 'Implemented roadmap visualization', completed: true },
+            { text: 'Added project timeline and milestones', completed: true }
           ]
         },
         {
-          text: 'Routing',
+          text: 'Project Page Created',
           completed: true,
+          date: 'December 13, 2024',
           subItems: [
-            { text: 'Implement client-side routing for navigation between dashboard and editor', completed: true }
+            { text: 'Implemented project management interface', completed: true },
+            { text: 'Added project creation and management features', completed: true }
           ]
         },
         {
-          text: 'Integrate Generation',
+          text: 'Page Refinements and UI Improvements',
           completed: true,
+          date: 'December 20, 2024',
           subItems: [
-            { text: 'Modify generation flow to save the result into the currently active project/blueprint file', completed: true }
+            { text: 'Enhanced visual design and user experience', completed: true },
+            { text: 'Improved responsiveness and accessibility', completed: true }
           ]
         }
       ]
     },
     {
       id: 'phase2',
-      title: 'Phase 2: Editor Enhancements',
-      description: 'Improving the visual editor experience and adding advanced controls',
+      title: 'Development Phase 2',
+      description: 'Core functionality and editor implementation',
       icon: <LuPuzzle className="w-10 h-10 text-accent-400" />,
+      date: 'January 13, 2025',
       items: [
         {
-          text: 'Improved Visualization',
-          completed: false,
+          text: 'Editor Layout Created',
+          completed: true,
+          date: 'January 13, 2025',
           subItems: [
-            { text: 'More accurate UE node/pin styling (colors, shapes)', completed: false },
-            { text: 'Better edge routing/styles', completed: false }
+            { text: 'Implemented blueprint editor interface', completed: true },
+            { text: 'Added node and connection visualization', completed: true }
           ]
         },
         {
-          text: 'Manual Editing',
+          text: 'Core LLM and JSON Data Integration',
           completed: true,
+          date: 'February 3, 2025',
           subItems: [
-            { text: 'Allow moving nodes after generation', completed: true },
-            { text: 'Allow deleting selected nodes/edges', completed: true },
-            { text: 'Allow adding nodes/connections manually', completed: false }
+            { text: 'Integrated LLM API for blueprint generation', completed: true },
+            { text: 'Implemented JSON data handling and validation', completed: true }
           ]
         },
         {
-          text: 'UI Controls',
+          text: 'UI and UX Improvements',
           completed: true,
+          date: 'February 13, 2025',
           subItems: [
-            { text: 'Zoom/Pan controls', completed: true },
-            { text: 'Fit-to-view button', completed: true }
+            { text: 'Enhanced user interface elements', completed: true },
+            { text: 'Improved user experience and workflow', completed: true }
+          ]
+        },
+        {
+          text: 'Rules and Additional Features',
+          completed: true,
+          date: 'February 20, 2025',
+          subItems: [
+            { text: 'Implemented security rules and permissions', completed: true },
+            { text: 'Added additional functionality and features', completed: true }
+          ]
+        },
+        {
+          text: 'Small Code Improvements',
+          completed: true,
+          date: 'March 18, 2025',
+          subItems: [
+            { text: 'Refactored and optimized code', completed: true },
+            { text: 'Fixed bugs and improved performance', completed: true }
           ]
         }
       ]
     },
     {
       id: 'phase3',
-      title: 'Phase 3: Output & Integration',
-      description: 'Finalizing output formats and integrating with external systems',
+      title: 'Deployment and Hosting',
+      description: 'Deploying the application to production',
       icon: <LuRocket className="w-10 h-10 text-violet-400" />,
+      date: 'April 7, 2025',
       items: [
         {
-          text: 'Unreal Engine Export',
-          completed: false,
+          text: 'Vercel, Firebase and Render Hosting',
+          completed: true,
+          date: 'April 7-8, 2025',
           subItems: [
-            { text: 'Generate `.copy` text format suitable for pasting into the UE editor', completed: false },
-            { text: 'Add an "Export for Unreal" button', completed: false }
+            { text: 'Set up Vercel for frontend hosting', completed: true },
+            { text: 'Configured Firebase for backend services', completed: true },
+            { text: 'Deployed serverless functions', completed: true }
           ]
         },
         {
-          text: 'Output Quality',
-          completed: false,
+          text: 'Epic MegaGrants Request',
+          completed: true,
+          date: 'April 8, 2025',
           subItems: [
-            { text: 'Advanced prompt engineering for better JSON accuracy', completed: false },
-            { text: 'Implement JSON schema validation', completed: false },
-            { text: 'Add retry mechanism for LLM errors/invalid JSON', completed: false }
+            { text: 'Prepared application for Epic MegaGrants', completed: true },
+            { text: 'Submitted grant request for funding', completed: true }
           ]
         }
       ]
     },
     {
-      id: 'future',
-      title: 'Future Ideas & Backlog',
-      description: 'Long-term vision and advanced feature concepts',
-      icon: <LuLightbulb className="w-10 h-10 text-yellow-400" />,
+      id: 'beta2',
+      title: 'Beta 2.0 (3-6 months)',
+      description: 'Future improvements and enhancements',
+      icon: <LuSparkles className="w-10 h-10 text-yellow-400" />,
       items: [
-        { text: 'Expanding user profiles with preferences', completed: false },
-        { text: 'Sharing Projects/Blueprints with other users', completed: false },
-        { text: 'Support for different LLMs', completed: false },
-        { text: 'More advanced node types/features (Macros, Functions within Blueprints)', completed: false },
-        { text: 'Real-time Collaboration', completed: false },
-        { text: 'Analytics on usage and blueprint complexity', completed: false },
-        { text: 'Community templates and examples', completed: false }
+        { text: 'Code Base Refactoring', completed: false },
+        { text: 'UI and UX Improvements', completed: false },
+        { text: 'Smart LLM API Rotation', completed: false },
+        { text: 'More Secure and Robust Login/Signup', completed: false },
+        { text: 'Hosting & Better Cloud Storage Options', completed: false }
+      ]
+    },
+    {
+      id: 'alpha',
+      title: 'Alpha v1 (3-7 months)',
+      description: 'Advanced features and community integration',
+      icon: <LuUsers className="w-10 h-10 text-blue-400" />,
+      items: [
+        { text: 'Better Exporting/Copy Paste', completed: false },
+        { text: 'Community and Sharing of Scripts + Forum', completed: false },
+        { text: 'Live-Link-Layer for Unreal', completed: false },
+        { text: 'Interactive Learning and Tutorials', completed: false }
       ]
     }
   ];
@@ -237,6 +294,12 @@ const RoadmapPage: React.FC = () => {
                   <p className="text-gray-400 group-hover:text-gray-300 transition-colors">
                     {phase.description}
                   </p>
+                  {phase.date && (
+                    <div className="flex items-center mt-1 text-sm text-gray-500">
+                      <LuCalendar className="w-4 h-4 mr-1" />
+                      <span>{phase.date}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="ml-4 transform transition-transform duration-300">
                   <svg 
@@ -261,9 +324,17 @@ const RoadmapPage: React.FC = () => {
                         ) : (
                           <LuSquare className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />
                         )}
-                        <span className={`font-medium ${item.completed ? 'text-white' : 'text-gray-300'}`}>
-                          {item.text}
-                        </span>
+                        <div>
+                          <span className={`font-medium ${item.completed ? 'text-white' : 'text-gray-300'}`}>
+                            {item.text}
+                          </span>
+                          {item.date && (
+                            <div className="flex items-center mt-1 text-xs text-gray-500">
+                              <LuCalendar className="w-3 h-3 mr-1" />
+                              <span>{item.date}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
                       {/* Sub-items */}

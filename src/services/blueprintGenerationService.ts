@@ -2,8 +2,6 @@
 import { LLMBlueprintData } from '../types/BlueprintTypes';
 
 // Get the API URL from environment variables or use a relative path
-// For Vercel: Use relative path (empty string)
-// For Render: Use the Render URL in production
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 /**
@@ -19,14 +17,18 @@ export class BlueprintGenerationService {
    * @returns The raw JSON string response from the backend (expected to be Gemini output).
    * @throws If the API call fails or returns an error status.
    */
-  static async generateFromQuery(query: string): Promise<string> { // Returns raw string now
+  static async generateFromQuery(query: string): Promise<string> {
     console.log("Sending query to backend API...");
     
-    const backendUrl = `${API_BASE_URL}/api/generateBlueprint`;
+    // Ensure we have a valid URL
+    const backendUrl = API_BASE_URL 
+      ? `${API_BASE_URL}/api/generateBlueprint`
+      : '/api/generateBlueprint';
+      
     console.log(`Using backend URL: ${backendUrl}`);
 
     try {
-      const response = await fetch(backendUrl, { // Use the specific URL
+      const response = await fetch(backendUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

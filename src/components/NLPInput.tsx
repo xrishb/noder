@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BlueprintGenerationService } from '../services/blueprintGenerationService';
 import { useBlueprint } from '../hooks/useBlueprint';
-import { LuSend, LuBrainCircuit } from 'react-icons/lu';
+import { LuSend, LuBrain } from 'react-icons/lu';
 
 interface NLPInputProps {
   onLoading: (isLoading: boolean) => void;
@@ -52,32 +52,27 @@ export const NLPInput: React.FC<NLPInputProps> = ({
   };
 
   return (
-    <div className="group bg-gradient-to-b from-gray-800/90 to-gray-900/95 backdrop-blur-md rounded-xl border border-gray-700/40 shadow-lg p-3 transition-all duration-300 hover:shadow-xl focus-within:border-blue-500/40 focus-within:shadow-blue-500/10">
-      <form onSubmit={handleSubmit} className="flex items-center">
-        <div className="flex items-center justify-center w-8 h-8 mr-2 bg-gray-800 rounded-full">
-          <LuBrainCircuit size={18} className="text-blue-400" />
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="relative flex items-center bg-[#1A1A1A] border border-[#333] rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute left-3 flex items-center justify-center">
+          <LuBrain className="w-5 h-5 text-[#4dabf7]" />
         </div>
         <input
           type="text"
           value={query}
-          onChange={handleQueryChange}
-          placeholder={placeholder}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Describe what you want to create..."
+          className="flex-1 py-2 px-3 pl-10 text-sm font-sans font-medium tracking-wide bg-transparent text-white border-none focus:outline-none placeholder-gray-500 transition-colors"
           disabled={isGenerating}
-          className="flex-1 py-2 px-3 text-sm bg-transparent text-white border-none focus:outline-none placeholder-gray-500 transition-colors"
         />
-        <button 
-          type="submit" 
+        <button
+          type="submit"
+          className="px-4 py-2 bg-[#1A1A1A] text-gray-400 hover:text-[#4dabf7] transition-colors"
           disabled={isGenerating || !query.trim()}
-          className="p-2 ml-2 bg-gradient-to-r from-blue-600 to-cyan-700 text-white rounded-lg cursor-pointer transition-all duration-200 hover:brightness-110 active:brightness-90 disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-md hover:shadow-lg group-focus-within:shadow-blue-500/20"
-          aria-label="Generate Blueprint"
         >
-          {isGenerating ? (
-            <div className="w-5 h-5 border-2 border-gray-400 border-t-white rounded-full animate-spin"></div>
-          ) : (
-            <LuSend className="w-5 h-5 transition-colors group-hover:text-blue-200"/>
-          )}
+          <LuSend className="w-5 h-5" />
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }; 

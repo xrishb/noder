@@ -33,58 +33,49 @@ const blueprintNodeSchemaMap = new Map<string, NodeSchema>(
 */
 
 // Helper function to parse and validate the raw JSON string from the backend
-const parseAndValidateResponse = (jsonString: string): LLMBlueprintData => {
-  let potentialJson: string | undefined = undefined; 
+const parseAndValidateResponse = (responseText: string): LLMBlueprintData => {
   try {
-    // Simple extraction: Find the first '{' and the last '}'
-    const firstBraceIndex = jsonString.indexOf('{');
-    const lastBraceIndex = jsonString.lastIndexOf('}');
-
-    if (firstBraceIndex === -1 || lastBraceIndex === -1 || lastBraceIndex < firstBraceIndex) {
-      console.error("Backend Response didn't contain valid JSON object delimiters ({...}):", jsonString);
-      throw new Error("Backend response did not contain a recognizable JSON object structure ({...}).");
+    // First try to parse the entire response as JSON
+    let jsonData: LLMBlueprintData;
+    try {
+      jsonData = JSON.parse(responseText);
+    } catch (e) {
+      // If that fails, try to extract JSON from the text
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No valid JSON found in response');
+      }
+      jsonData = JSON.parse(jsonMatch[0]);
     }
 
-    // Extract the potential JSON string between the braces
-    potentialJson = jsonString.substring(firstBraceIndex, lastBraceIndex + 1);
-    
-    // Attempt to parse the extracted string
-    const parsed = JSON.parse(potentialJson) as unknown; // Parse first
+    // Validate the structure
+    if (!jsonData.nodes || !Array.isArray(jsonData.nodes)) {
+      throw new Error('Response missing nodes array');
+    }
+    if (!jsonData.connections || !Array.isArray(jsonData.connections)) {
+      throw new Error('Response missing connections array');
+    }
 
-    // --- Validation (Simple structure) --- 
-    if (typeof parsed !== 'object' || parsed === null) throw new Error('Parsed content is not an object.');
-    
-    // Validate top-level nodes and connections arrays
-    if (!Array.isArray((parsed as any).nodes)) {
-       throw new Error('Missing or invalid top-level \"nodes\" array.');
-    }
-    if (!Array.isArray((parsed as any).connections)) {
-       throw new Error('Missing or invalid top-level \"connections\" array.');
-    }
-    // TODO: Add deeper validation for node/connection properties if needed
-    // --- End Validation ---
-    
-    // If validation passes, cast to the stricter type
-    return parsed as LLMBlueprintData; 
+    // Validate each node has required fields
+    jsonData.nodes.forEach((node, index) => {
+      if (!node.id || !node.type || !node.data) {
+        throw new Error(`Node at index ${index} missing required fields`);
+      }
+    });
 
-  } catch (error) { // Catches errors from extraction, JSON.parse, or validation checks
-    console.error("Failed to parse or validate Backend response:", error);
-    console.error("Original Raw Backend Response:", jsonString);
-    if(potentialJson !== undefined) { 
-        console.error("Extracted Potential JSON:", potentialJson);
-    }
-    
-    if (error instanceof SyntaxError) {
-       // Include line/col info if available (browser dependent)
-       const syntaxDetails = error.message.includes('JSON.parse') ? error.message.substring(error.message.indexOf(':') + 1).trim() : 'invalid syntax';
-       throw new Error(`Backend returned invalid JSON syntax: ${syntaxDetails}`); 
-    } else if (error instanceof Error) { 
-        throw new Error(`Backend response processing failed: ${error.message}`);
-    } else {
-        throw new Error("An unknown error occurred during response parsing.");
-    }
+    // Validate each connection has required fields
+    jsonData.connections.forEach((conn, index) => {
+      if (!conn.source || !conn.target) {
+        throw new Error(`Connection at index ${index} missing source or target`);
+      }
+    });
+
+    return jsonData;
+  } catch (error) {
+    console.error('Error parsing/validating response:', error);
+    throw new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
+};
 
 export const useBlueprint = () => {
   const store = useBlueprintStore();
