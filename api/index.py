@@ -10,6 +10,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
+import re
 
 # Configure logging
 logging.basicConfig(
@@ -200,6 +201,24 @@ def generate_blueprint_handler():
             logger.error(f"LLM response did not contain JSON object delimiters: {response_text[:500]}...")
             raise ValueError("LLM response does not appear to contain JSON.")
 
+        # Enhanced debugging for the raw response
+        logger.info(f"Raw LLM response (first 1000 chars): {response_text[:1000]}")
+        
+        # Try to extract JSON if it's wrapped in markdown or other text
+        json_match = re.search(r'```json\s*([\s\S]*?)\s*```', response_text)
+        if json_match:
+            logger.info("Found JSON wrapped in markdown code block")
+            response_text = json_match.group(1)
+        else:
+            # Try to find JSON between curly braces if not in code block
+            json_match = re.search(r'(\{[\s\S]*\})', response_text)
+            if json_match:
+                logger.info("Extracted JSON object using regex")
+                response_text = json_match.group(1)
+                
+        # Clean response by removing any non-JSON text before/after
+        response_text = response_text.strip()
+        
         # IMPORTANT: Return JSON for frontend compatibility
         # The frontend likely expects a JSON object based on previous interactions
         # We assume the LLM returns a *string* that is valid JSON.
@@ -212,7 +231,30 @@ def generate_blueprint_handler():
     except json.JSONDecodeError as json_err:
         logger.error(f"Failed to parse LLM response as JSON: {json_err}")
         logger.error(f"LLM Raw Response: {response_text}")
-        return jsonify({"error": "Failed to generate blueprint: Invalid format from generation service."}), 500
+        
+        # Try to clean the response more aggressively
+        cleaned_response = response_text.strip()
+        # Remove any leading/trailing text that might be causing issues
+        if cleaned_response.startswith('{') and cleaned_response.endswith('}'):
+            try:
+                # Try one more time with a more aggressively cleaned string
+                cleaned_json = json.loads(cleaned_response)
+                logger.info("Successfully parsed JSON after cleaning")
+                return jsonify(cleaned_json), 200
+            except json.JSONDecodeError:
+                logger.error("Still failed to parse after cleaning")
+        
+        # Get position info from the error to help debug
+        error_info = str(json_err)
+        logger.error(f"JSON Error Position Info: {error_info}")
+        
+        # Return a more detailed error to help with debugging
+        return jsonify({
+            "error": "Failed to generate blueprint: Invalid format from generation service.",
+            "raw_error": str(json_err),
+            "error_type": "json_parse_error",
+            "response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text
+        }), 500
     except Exception as e:
         logger.error(f"Error calling Gemini API or processing response: {e}")
         # Avoid sending detailed internal errors to the client

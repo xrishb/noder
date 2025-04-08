@@ -62,7 +62,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     itemId: null,
   });
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [sortBy, setSortBy] = useState<'name' | 'type' | 'date'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'type' | 'modified'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterType, setFilterType] = useState<'all' | 'files' | 'folders'>('all');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -131,7 +131,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           return sortOrder === 'asc' 
             ? a.name.localeCompare(b.name)
             : b.name.localeCompare(a.name);
-        } else if (sortBy === 'date') {
+        } else if (sortBy === 'modified') {
           const dateA = a.updatedAt || a.createdAt || new Date(0);
           const dateB = b.updatedAt || b.createdAt || new Date(0);
           return sortOrder === 'asc' 
@@ -429,12 +429,12 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           <span className="text-xs font-sans font-medium tracking-wide text-gray-400">Sort by:</span>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'name' | 'type' | 'date')}
+            onChange={(e) => setSortBy(e.target.value as 'name' | 'type' | 'modified')}
             className="text-xs font-sans font-medium tracking-wide bg-[#1A1A1A] border border-[#333] rounded px-2 py-1 text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#4dabf7]"
           >
             <option value="name">Name</option>
             <option value="type">Type</option>
-            <option value="date">Date</option>
+            <option value="modified">Date</option>
           </select>
         </div>
         

@@ -775,7 +775,7 @@ export const BlueprintEditor: React.FC = () => {
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}
                   fitView
-                  attribution={false}
+                  attribution="false"
                   onNodeClick={(_, node) => setSelectedNodes([node])}
                   onEdgeClick={(_, edge) => setSelectedEdges([edge])}
                   onPaneClick={() => {

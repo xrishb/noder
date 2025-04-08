@@ -1,27 +1,17 @@
 import React, { useState } from 'react';
-import { BlueprintGenerationService } from '../services/blueprintGenerationService';
 import { useBlueprint } from '../hooks/useBlueprint';
 import { LuSend, LuBrain } from 'react-icons/lu';
 
 interface NLPInputProps {
-  onLoading: (isLoading: boolean) => void;
-  onError: (error: string | null) => void; // Allow null for clearing errors
-  onGenerationComplete?: (blueprintData: any) => void; // Optional callback for when generation completes
+  onGenerate?: (blueprintData: any) => void;
 }
 
 export const NLPInput: React.FC<NLPInputProps> = ({ 
-  onLoading, 
-  onError,
-  onGenerationComplete 
+  onGenerate
 }) => {
   const [query, setQuery] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [placeholder, setPlaceholder] = useState<string>('Describe the blueprint to generate...');
-  const { loadBlueprint } = useBlueprint();
-
-  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-  };
+  const { loadBlueprint, isLoading } = useBlueprint();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,24 +19,21 @@ export const NLPInput: React.FC<NLPInputProps> = ({
     
     try {
       setIsGenerating(true);
-      onLoading(true);
-      onError(null); // Clear previous errors
       
-      // Directly use loadBlueprint with the query
+      // Call the loadBlueprint hook function with the user query
       await loadBlueprint(query);
       
-      // Call the onGenerationComplete callback if provided
-      if (onGenerationComplete) {
-        onGenerationComplete(query);
+      // Call onGenerate callback if provided
+      if (onGenerate) {
+        onGenerate(query);
       }
       
+      // Clear input after successful generation
       setQuery('');
     } catch (error) {
       console.error('Blueprint generation failed:', error);
-      onError('Failed to generate: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsGenerating(false);
-      onLoading(false);
     }
   };
 
