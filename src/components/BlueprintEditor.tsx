@@ -638,7 +638,7 @@ export const BlueprintEditor: React.FC = () => {
           >
             <LuArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold">{projectName || 'Blueprint Editor'}</h1>
+          <h1 className="text-xl font-bold">{currentProject?.name || 'Blueprint Editor'}</h1>
         </div>
         
         <div className="flex items-center space-x-2">
