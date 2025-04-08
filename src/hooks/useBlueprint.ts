@@ -32,51 +32,6 @@ const blueprintNodeSchemaMap = new Map<string, NodeSchema>(
 );
 */
 
-// Helper function to parse and validate the raw JSON string from the backend
-const parseAndValidateResponse = (responseText: string): LLMBlueprintData => {
-  try {
-    // First try to parse the entire response as JSON
-    let jsonData: LLMBlueprintData;
-    try {
-      jsonData = JSON.parse(responseText);
-    } catch (e) {
-      // If that fails, try to extract JSON from the text
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No valid JSON found in response');
-      }
-      jsonData = JSON.parse(jsonMatch[0]);
-    }
-
-    // Validate the structure
-    if (!jsonData.nodes || !Array.isArray(jsonData.nodes)) {
-      throw new Error('Response missing nodes array');
-    }
-    if (!jsonData.connections || !Array.isArray(jsonData.connections)) {
-      throw new Error('Response missing connections array');
-    }
-
-    // Validate each node has required fields
-    jsonData.nodes.forEach((node, index) => {
-      if (!node.id || !node.type || !node.data) {
-        throw new Error(`Node at index ${index} missing required fields`);
-      }
-    });
-
-    // Validate each connection has required fields
-    jsonData.connections.forEach((conn, index) => {
-      if (!conn.source || !conn.target) {
-        throw new Error(`Connection at index ${index} missing source or target`);
-      }
-    });
-
-    return jsonData;
-  } catch (error) {
-    console.error('Error parsing/validating response:', error);
-    throw new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-};
-
 export const useBlueprint = () => {
   const store = useBlueprintStore();
 
@@ -95,12 +50,34 @@ export const useBlueprint = () => {
       // Call the service, which now fetches from the backend API
       const rawResponseText = await BlueprintGenerationService.generateFromQuery(query);
       
-      // Parse and validate the raw string response HERE
-      const llmBlueprintData = parseAndValidateResponse(rawResponseText);
+      // **Parse JSON directly here**
+      let llmBlueprintData: LLMBlueprintData;
+      try {
+        llmBlueprintData = JSON.parse(rawResponseText);
+      } catch (parseError) {
+         console.error('Failed to parse raw response text:', parseError);
+         console.error('Raw Response Text:', rawResponseText);
+         // Try extracting JSON if direct parse fails
+         const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
+         if (!jsonMatch) {
+            throw new Error('Response is not valid JSON and no JSON object found within.');
+         }
+         try {
+            llmBlueprintData = JSON.parse(jsonMatch[0]);
+         } catch (extractParseError) {
+             console.error('Failed to parse extracted JSON:', extractParseError);
+             throw new Error('Extracted content is not valid JSON.');
+         }
+      }
 
-      // --- Transformation Logic (remains the same) ---
-      console.log("Parsed LLM Data:", llmBlueprintData); // Add detailed logging
+      // --- Transformation Logic --- 
+      console.log("Parsed LLM Data (Direct Parse):", llmBlueprintData); // Log parsed data
       
+      // Basic structure validation after direct parse
+      if (!llmBlueprintData || typeof llmBlueprintData !== 'object') {
+         throw new Error('Parsed response is not a valid object.');
+      }
+
       const newNodes: Node<NodeData>[] = [];
       const newEdges: Edge[] = [];
       const tempIdToRealIdMap = new Map<string, string>();
@@ -110,36 +87,46 @@ export const useBlueprint = () => {
       let currentY = 100;
 
       // 1. Process Nodes (top level)
-      // Add checks for existence and type before iterating
-      if (!llmBlueprintData.nodes || !Array.isArray(llmBlueprintData.nodes)) {
+      // Ensure nodes array exists before iterating
+      if (!Array.isArray(llmBlueprintData.nodes)) {
           console.error("Validation Error: llmBlueprintData.nodes is not a valid array:", llmBlueprintData.nodes);
           throw new Error('Invalid blueprint data: nodes array is missing or invalid.');
       }
       
       for (const llmNode of llmBlueprintData.nodes) {
-        if (!llmNode || !llmNode.id || !llmNode.title || !llmNode.nodeType || !llmNode.inputs || !llmNode.outputs) {
-          console.warn(`Skipping invalid node:`, llmNode);
+        // Basic node structure check
+        if (!llmNode || !llmNode.id || !llmNode.title || !llmNode.nodeType) {
+          console.warn(`Skipping invalid base node structure:`, llmNode);
           continue;
         }
         
         const realNodeId = uuidv4();
         tempIdToRealIdMap.set(llmNode.id, realNodeId);
         
+        // **Defensive check for pins arrays before mapping**
+        if (!Array.isArray(llmNode.inputs)) {
+          console.error(`Data Error: Node '${llmNode.id}' (${llmNode.title}) has invalid 'inputs':`, llmNode.inputs);
+          throw new Error(`Invalid blueprint data: Node ${llmNode.id} 'inputs' is not an array.`);
+        }
+        if (!Array.isArray(llmNode.outputs)) {
+          console.error(`Data Error: Node '${llmNode.id}' (${llmNode.title}) has invalid 'outputs':`, llmNode.outputs);
+          throw new Error(`Invalid blueprint data: Node ${llmNode.id} 'outputs' is not an array.`);
+        }
+        
         const nodeData: NodeData = {
           title: llmNode.title,
           nodeType: llmNode.nodeType,
-          inputs: llmNode.inputs.map(pin => ({ ...pin })),
-          outputs: llmNode.outputs.map(pin => ({ ...pin })),
+          inputs: llmNode.inputs.map(pin => ({ ...pin })), // Safer map
+          outputs: llmNode.outputs.map(pin => ({ ...pin })), // Safer map
           description: llmNode.description || '',
           color: llmNode.color,
-          // Removed sectionId/sectionName
         };
 
         // Calculate position (simple grid)
         const position = { x: currentX, y: currentY };
         nodePositions[llmNode.id] = position;
         currentX += gridSpacing;
-        if (currentX >= HORIZONTAL_SPACING) {
+        if (currentX >= HORIZONTAL_SPACING) { // Corrected condition
           currentX = 100;
           currentY += VERTICAL_SPACING;
         }
@@ -149,7 +136,6 @@ export const useBlueprint = () => {
           type: 'blueprintNode',
           position: position, 
           data: nodeData,
-          // Removed parentNode and extent
         };
         newNodes.push(blueprintNode);
       } // End node loop
@@ -158,19 +144,20 @@ export const useBlueprint = () => {
       const allNodesMap = new Map<string, Node<NodeData>>();
       newNodes.forEach(node => {
         allNodesMap.set(node.id, node);
-        nodePositions[node.id] = node.position;
-      }); // Use real ID for map key
+        nodePositions[node.id] = node.position; // Use real ID for map key
+      });
 
       // 2. Process Connections (top level)
-      // Add checks for existence and type before iterating
-      if (!llmBlueprintData.connections || !Array.isArray(llmBlueprintData.connections)) {
+      // Ensure connections array exists before iterating
+      if (!Array.isArray(llmBlueprintData.connections)) {
           console.error("Validation Error: llmBlueprintData.connections is not a valid array:", llmBlueprintData.connections);
           throw new Error('Invalid blueprint data: connections array is missing or invalid.');
       }
       
       for (const connection of llmBlueprintData.connections) {
+         // Basic connection structure check
          if (!connection || !connection.sourceNodeId || !connection.sourcePinName || !connection.targetNodeId || !connection.targetPinName) {
-            console.warn(`Skipping invalid connection:`, connection);
+            console.warn(`Skipping invalid base connection structure:`, connection);
             continue;
          }
          
@@ -192,9 +179,19 @@ export const useBlueprint = () => {
             continue;
          }
 
-         // Pin validation logic (remains largely the same)
-         const sourcePin = sourceNode.data.outputs.find(p => p.name === connection.sourcePinName);
-         const targetPin = targetNode.data.inputs.find(p => p.name === connection.targetPinName);
+         // **Defensive check for pin arrays before finding**
+         if (!sourceNode.data || !Array.isArray(sourceNode.data.outputs)) {
+           console.error(`Data Error: Source node '${realSourceId}' or its data/outputs are invalid:`, sourceNode);
+           throw new Error(`Invalid state: Cannot find outputs for source node ${realSourceId}.`);
+         }
+          if (!targetNode.data || !Array.isArray(targetNode.data.inputs)) {
+           console.error(`Data Error: Target node '${realTargetId}' or its data/inputs are invalid:`, targetNode);
+           throw new Error(`Invalid state: Cannot find inputs for target node ${realTargetId}.`);
+         }
+
+         // Pin lookup logic
+         const sourcePin = sourceNode.data.outputs.find(p => p.name === connection.sourcePinName); // Safer find
+         const targetPin = targetNode.data.inputs.find(p => p.name === connection.targetPinName); // Safer find
          
          if (!sourcePin) {
            console.warn(`Skipping connection: Source pin '${connection.sourcePinName}' not found on node '${sourceNode.data.title}' (ID: ${realSourceId}).`);
@@ -205,11 +202,17 @@ export const useBlueprint = () => {
            continue;
          }
          
-         // Type compatibility checks (remain the same)
+         // Type compatibility checks
          const isExecConnection = sourcePin.type === 'exec' && targetPin.type === 'exec';
          const isDataConnection = sourcePin.type !== 'exec' && targetPin.type !== 'exec';
-         if (!isExecConnection && !isDataConnection) { /* ... */ continue; }
-         if (isDataConnection && sourcePin.type !== targetPin.type) { /* ... */ continue; } 
+         if (!isExecConnection && !isDataConnection) { 
+             console.warn(`Skipping connection: Incompatible pin types (non-exec/non-data) from '${sourcePin.name}' (${sourcePin.type}) to '${targetPin.name}' (${targetPin.type}).`);
+             continue; 
+         }
+         if (isDataConnection && sourcePin.type !== targetPin.type) { 
+             console.warn(`Skipping connection: Mismatched data pin types ('${sourcePin.type}' -> '${targetPin.type}') from '${sourcePin.name}' to '${targetPin.name}'.`);
+             continue; 
+         }
          
          newEdges.push({
            id: `edge-${realSourceId}-${connection.sourcePinName}-${realTargetId}-${connection.targetPinName}`,
@@ -222,10 +225,10 @@ export const useBlueprint = () => {
          });
       } // End connection loop
 
-      // Update store with simpler structure
+      // Update store
       store.setNodes(newNodes);
       store.setEdges(newEdges);
-      store.setBlueprintName(llmBlueprintData.blueprintName || 'Generated Blueprint'); // Restore setting name/desc
+      store.setBlueprintName(llmBlueprintData.blueprintName || 'Generated Blueprint');
       store.setBlueprintDescription(llmBlueprintData.blueprintDescription || 'Generated from query');
       console.log(`Loaded blueprint: ${llmBlueprintData.blueprintName || 'Untitled'}`);
       toast.success("Blueprint generated!", { id: loadingToastId });
@@ -233,8 +236,7 @@ export const useBlueprint = () => {
     } catch (error) {
       console.error("Blueprint generation failed:", error);
       toast.error(`Blueprint generation failed: ${error instanceof Error ? error.message : String(error)}`, { id: loadingToastId });
-      // Clear potentially partial state on error
-      store.clearBlueprint();
+      store.clearBlueprint(); // Clear potentially partial state on error
     } finally {
       store.setIsLoading(false);
     }
