@@ -1,0 +1,206 @@
+# noder/api/index.py
+# This file defines a Vercel Serverless Function using Flask.
+# Requests to /api/generateBlueprint or /api/health will be handled by this function.
+
+import os
+import google.generativeai as genai
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# Load environment variables from .env file if present (mainly for local dev)
+# In Vercel, variables are set in the project settings
+load_dotenv()
+
+# --- Prompt Definitions ---
+# (Keep the INSTRUCTIONS and EXAMPLES strings exactly as they were in server.py)
+INSTRUCTIONS = """
+You are an expert Unreal Engine Blueprint assistant.
+Your task is to analyze the user's request and generate a JSON object representing the necessary Blueprint nodes, their pins, color, default input values, and connections for a single blueprint graph.
+
+The JSON output MUST strictly follow this format:
+{
+  "blueprintName": "Optional short name for the graph",
+  "blueprintDescription": "Optional brief description",
+  "nodes": [
+    {
+      "id": "unique_temporary_node_id",
+      "title": "Exact Unreal Engine Node Title",
+      "nodeType": "event | function | variable | macro",
+      "color": "#RRGGBB or suggested color name",
+      "inputs": [ { "name": "Exact Pin Name", "type": "PinType", "value": value_or_null } /* ... ALL pins IN ORDER */ ],
+      "outputs": [ { "name": "Exact Pin Name", "type": "PinType" } /* ... ALL pins IN ORDER */ ]
+    }
+  ],
+  "connections": [
+    {
+      "sourceNodeId": "temporary_id_of_source_node",
+      "sourcePinName": "Exact OUTPUT Pin Name",
+      "targetNodeId": "temporary_id_of_target_node",
+      "targetPinName": "Exact INPUT Pin Name"
+    }
+  ]
+}
+
+IMPORTANT RULES:
+- Node ID Uniqueness: Must be unique within the response.
+- Accuracy: Use exact UE node titles and pin names (case-sensitive).
+- Pins: Include COMPLETE and ACCURATE inputs/outputs arrays for ALL standard pins, in order. Use exact PinTypes. Do NOT use empty strings ("") for pin names; use descriptive names. Provide sensible default 'value' or null (JSON keyword null, not 'None') for unconnected INPUT pins. Use JSON booleans true/false (lowercase).
+- Color: Use color accurate to Unreal's blueprint colors.
+- Connections: CRITICAL: sourcePinName MUST exist in source node's outputs. targetPinName MUST exist in target node's inputs. Ensure types are compatible.
+- Minimality: Only include essential nodes/connections but fulfill user request; generate a good amount of tokens.
+- Output Format: ONLY the pure, valid JSON object. NO comments. Pay strict attention to JSON syntax (quotes, commas, NO trailing commas).
+- Handle unknown nodes: Use your knowledge to generate nodes not in a predefined database, ensuring they are accurate.
+"""
+
+EXAMPLES = """
+EXAMPLE 1:
+User Query: "When I press Space Bar, make the character jump"
+JSON Output:
+{
+  "blueprintName": "BP_MyCharacter_Jump",
+  "blueprintDescription": "Makes the character jump when Space Bar is pressed.",
+  "nodes": [
+    {"id": "node-1", "title": "InputAction Jump", "nodeType": "event", "color": "#B71C1C", "inputs": [], "outputs": [{ "name": "Pressed", "type": "exec" }, { "name": "Released", "type": "exec" }, { "name": "Key", "type": "object" }] },
+    {"id": "node-2", "title": "Jump", "nodeType": "function", "color": "#1E88E5", "inputs": [{ "name": "Execute", "type": "exec", "value": null }, { "name": "Target", "type": "object", "value": null }], "outputs": [{ "name": "Execute", "type": "exec" }] },
+    {"id": "node-3", "title": "Get Player Character", "nodeType": "function", "color": "#1E88E5", "inputs": [{ "name": "Player Index", "type": "int", "value": 0 }], "outputs": [{ "name": "Return Value", "type": "object" }] }
+  ],
+  "connections": [
+    {"sourceNodeId": "node-1", "sourcePinName": "Pressed", "targetNodeId": "node-2", "targetPinName": "Execute"},
+    {"sourceNodeId": "node-3", "sourcePinName": "Return Value", "targetNodeId": "node-2", "targetPinName": "Target"}
+  ]
+}
+
+EXAMPLE 2:
+User Query: "On begin play in the Level Blueprint, print Hello World"
+JSON Output:
+{
+  "blueprintName": "LevelBlueprint_DebugPrint",
+  "blueprintDescription": "Prints Hello World when the game starts.",
+  "nodes": [
+    {"id": "startNode", "title": "Event BeginPlay", "nodeType": "event", "color": "#B71C1C", "inputs": [], "outputs": [{ "name": "Execute", "type": "exec" }] },
+    {"id": "printNode", "title": "Print String", "nodeType": "function", "color": "#004D40", "inputs": [{ "name": "Execute", "type": "exec", "value": null }, { "name": "In String", "type": "string", "value": "Hello World" }, { "name": "Print to Screen", "type": "bool", "value": true }, { "name": "Print to Log", "type": "bool", "value": true }, { "name": "Text Color", "type": "vector", "value": "(R=0.0,G=0.66,B=1.0,A=1.0)" }, { "name": "Duration", "type": "float", "value": 2.0 }], "outputs": [{ "name": "Execute", "type": "exec" }] }
+  ],
+  "connections": [
+    {"sourceNodeId": "startNode", "sourcePinName": "Execute", "targetNodeId": "printNode", "targetPinName": "Execute"}
+  ]
+}
+"""
+# --- End Prompt Definitions ---
+
+# Configure Flask App
+# Vercel expects the Flask app instance to be named 'app'
+app = Flask(__name__)
+CORS(app) # Enable CORS - configure origins more strictly in production if needed
+
+# Configure Gemini API
+# IMPORTANT: Read the API Key from environment variables.
+# Vercel will inject environment variables defined in the project settings.
+API_KEY = os.getenv("GEMINI_API_KEY")
+MODEL_NAME = "gemini-2.0-flash" # Or your desired model
+
+if not API_KEY:
+    logging.error("FATAL ERROR: GEMINI_API_KEY environment variable not set.")
+    # In a serverless function, raising an exception is often better than exit()
+    # Flask's error handling might catch this, or Vercel might log it.
+    # Returning a clear error response is also good practice here.
+    # For simplicity now, we log and proceed, but the API call will fail.
+    pass # Let the API call fail later if key is missing
+
+genai.configure(api_key=API_KEY)
+
+# Define safety settings and generation config
+safety_settings = [
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+]
+
+generation_config = {
+    "temperature": 0.3,
+    "top_p": 1,
+    "top_k": 1,
+    "max_output_tokens": 8192,
+}
+
+# Initialize the Generative Model
+# Handle potential error during initialization if API key is invalid/missing
+try:
+    model = genai.GenerativeModel(model_name=MODEL_NAME,
+                                  generation_config=generation_config,
+                                  safety_settings=safety_settings)
+except Exception as init_error:
+    logging.error(f"Failed to initialize GenerativeModel: {init_error}")
+    model = None # Ensure model is None if initialization fails
+
+# Note: Vercel routes requests based on the filename in the api/ directory.
+# A request to /api/generateBlueprint will be routed here if this file is api/index.py
+# and the function handles the '/api/generateBlueprint' route.
+# Alternatively, if the file was api/generateBlueprint.py, requests to /api/generateBlueprint
+# would be routed directly to a handler function within that file without Flask routing.
+# Using Flask allows multiple routes in one file.
+
+@app.route('/api/generateBlueprint', methods=['POST'])
+def generate_blueprint_handler():
+    if not model:
+         return jsonify({"error": "Model failed to initialize. Check API Key and configuration."}), 500
+         
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    data = request.get_json()
+    query_text = data.get('query') # Renamed variable for clarity
+
+    if not query_text or not isinstance(query_text, str):
+        return jsonify({"error": 'Missing or invalid "query" in request body.'}), 400
+
+    try:
+        user_request = f"\n      USER QUERY:\n      \"{query_text}\"\n\n      JSON Output:\n    "
+        full_prompt = f"{INSTRUCTIONS}\n{EXAMPLES}\n{user_request}"
+
+        logging.info("Sending prompt to Gemini (Serverless Function)...")
+        response = model.generate_content(full_prompt)
+        response_text = response.text
+        logging.info("Received raw response from Gemini (Serverless Function).")
+
+        # Basic validation
+        if '{' not in response_text or '}' not in response_text:
+            logging.error(f"LLM response did not contain JSON object delimiters: {response_text[:500]}...")
+            raise ValueError("LLM response does not appear to contain JSON.")
+
+        # IMPORTANT: Return JSON for frontend compatibility
+        # The frontend likely expects a JSON object based on previous interactions
+        # We assume the LLM returns a *string* that is valid JSON.
+        # We parse it here before sending.
+        # If the LLM response isn't valid JSON, this will raise an error.
+        import json
+        blueprint_json = json.loads(response_text)
+        return jsonify(blueprint_json), 200
+
+    except json.JSONDecodeError as json_err:
+         logging.error(f"Failed to parse LLM response as JSON: {json_err}")
+         logging.error(f"LLM Raw Response: {response_text}")
+         return jsonify({"error": "Failed to generate blueprint: Invalid format from generation service."}), 500
+    except Exception as e:
+        logging.error(f"Error calling Gemini API or processing response: {e}")
+        # Avoid sending detailed internal errors to the client
+        return jsonify({"error": "Failed to generate blueprint: Server error"}), 500
+
+@app.route('/api/health', methods=['GET'])
+def health_check_handler():
+    # Check if model initialized correctly
+    status = "OK"
+    if not API_KEY:
+        status = "ERROR: Missing GEMINI_API_KEY"
+    elif not model:
+        status = "ERROR: Model initialization failed"
+        
+    return jsonify({"status": status}), 200 if status == "OK" else 500
+
+# Vercel runs the Flask app instance named 'app'. No need for app.run() here.
+# The file structure api/index.py makes Vercel treat this as the handler for /api/* 

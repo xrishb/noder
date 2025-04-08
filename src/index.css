@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  Removed .blueprint-background rule entirely to prevent PostCSS errors.
+  Background color is applied in App.tsx.
+  Grid styling is applied directly in BlueprintEditor.tsx.
+*/
+
+/* 
+  All other specific React Flow overrides removed. 
+  Styling should be handled via Tailwind classes applied directly to components 
+  and theme definitions in tailwind.config.js.
+*/
