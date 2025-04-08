@@ -28,7 +28,7 @@ const BlueprintDiagram: React.FC = () => {
       }}></div>
       
       {/* Nodes */}
-      <div className="absolute top-1/4 left-1/4 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+      <div className="absolute top-1/4 left-1/4 w-32 sm:w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
         <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Input Action</div>
         <div className="text-xs text-white/60">Jump</div>
         <div className="mt-2 pt-2 border-t border-primary-500/30">
@@ -39,7 +39,7 @@ const BlueprintDiagram: React.FC = () => {
         </div>
       </div>
       
-      <div className="absolute top-1/4 left-1/2 w-40 h-auto bg-[#0A0F1C] border border-accent-500/50 rounded-md p-2 shadow-lg">
+      <div className="absolute top-1/4 left-1/2 w-32 sm:w-40 h-auto bg-[#0A0F1C] border border-accent-500/50 rounded-md p-2 shadow-lg">
         <div className="text-xs text-accent-300 font-mono border-b border-accent-500/30 pb-1 mb-1">Branch</div>
         <div className="text-xs text-white/60">Is Valid</div>
         <div className="mt-2 pt-2 border-t border-accent-500/30">
@@ -56,7 +56,7 @@ const BlueprintDiagram: React.FC = () => {
         </div>
       </div>
       
-      <div className="absolute top-1/2 left-1/3 w-40 h-auto bg-[#0A0F1C] border border-secondary-500/50 rounded-md p-2 shadow-lg">
+      <div className="absolute top-1/2 left-1/3 w-32 sm:w-40 h-auto bg-[#0A0F1C] border border-secondary-500/50 rounded-md p-2 shadow-lg">
         <div className="text-xs text-secondary-300 font-mono border-b border-secondary-500/30 pb-1 mb-1">Apply Force</div>
         <div className="text-xs text-white/60">Upward</div>
         <div className="mt-2 pt-2 border-t border-secondary-500/30">
@@ -67,7 +67,7 @@ const BlueprintDiagram: React.FC = () => {
         </div>
       </div>
       
-      <div className="absolute top-1/2 left-2/3 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+      <div className="absolute top-1/2 left-2/3 w-32 sm:w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
         <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Play Sound</div>
         <div className="text-xs text-white/60">Jump Sound</div>
         <div className="mt-2 pt-2 border-t border-primary-500/30">
@@ -297,16 +297,16 @@ const LandingPage: React.FC = () => {
         <div className="absolute -bottom-[300px] -right-[200px] w-[700px] h-[700px] bg-accent-500/10 rounded-full blur-[100px]"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('/grid-pattern.svg')] bg-repeat opacity-5"></div>
         
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="lg:pr-12">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                 <span className="text-white">Revolutionize</span>
                 <br />
                 <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Game Development</span>
               </h1>
               
-              <p className="text-xl text-white/70 mb-10 max-w-xl">
+              <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-xl">
                 Transform natural language into production-ready Unreal Engine 5 Blueprints instantly. 
                 <span className="text-white font-medium"> Cut development time by 80%</span> and bring your game ideas to life faster than ever before.
               </p>
@@ -337,7 +337,7 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="lg:pl-6 relative">
+            <div className="lg:pl-6 relative mt-10 lg:mt-0">
               <div className="relative z-10 bg-[#0A0F1C]/70 backdrop-blur-lg rounded-xl border border-white/5 overflow-hidden shadow-2xl shadow-primary-500/10">
                 <div className="border-b border-white/5 px-5 py-4 flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -353,7 +353,7 @@ const LandingPage: React.FC = () => {
                       <span className="text-accent-400">&gt;</span> Create a character movement system with sprint, crouch, and wall climbing abilities
                     </p>
                   </div>
-                  <div className="h-[300px] bg-[#060A14] rounded-lg border border-white/5 relative overflow-hidden">
+                  <div className="h-[250px] sm:h-[300px] bg-[#060A14] rounded-lg border border-white/5 relative overflow-hidden">
                     <BlueprintDiagram />
                   </div>
                 </div>
@@ -374,7 +374,7 @@ const LandingPage: React.FC = () => {
       {/* Mockup Animation Section */}
       <section className="relative py-20 bg-[#070B15] overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="bg-[#0A0F1C]/80 backdrop-blur-sm border border-white/5 rounded-2xl shadow-2xl overflow-hidden">
               <div className="h-10 bg-[#060A14] border-b border-white/5 flex items-center px-4">
@@ -388,8 +388,8 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="p-8 flex flex-col lg:flex-row gap-8">
-                <div className="flex-1 bg-[#060A14]/80 border border-white/5 rounded-lg p-4 h-[350px] max-w-md mx-auto lg:mx-0">
+              <div className="p-4 sm:p-8 flex flex-col lg:flex-row gap-8">
+                <div className="flex-1 bg-[#060A14]/80 border border-white/5 rounded-lg p-4 h-[300px] sm:h-[350px] max-w-md mx-auto lg:mx-0">
                   <div className="border-b border-white/10 pb-2 mb-4">
                     <h4 className="text-primary-400 text-sm font-medium">Prompt Input</h4>
                   </div>
@@ -418,7 +418,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex-1 relative h-[350px] bg-[#060A14]/50 rounded-lg border border-white/5 overflow-hidden">
+                <div className="flex-1 relative h-[300px] sm:h-[350px] bg-[#060A14]/50 rounded-lg border border-white/5 overflow-hidden">
                   <BlueprintDiagram />
                 </div>
               </div>
@@ -511,19 +511,19 @@ const LandingPage: React.FC = () => {
       </section>
       
       {/* Blueprint Examples Section */}
-      <section className="py-28 bg-[#060A14]">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+      <section className="py-20 sm:py-28 bg-[#060A14]">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-20">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
               <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Blueprint Examples</span>
             </h2>
-            <p className="text-xl text-white/70">
+            <p className="text-lg sm:text-xl text-white/70">
               See what Noder can generate from simple prompts
             </p>
             <div className="w-20 h-1 bg-gradient-to-r from-primary-500 to-accent-500 mx-auto mt-6 rounded-full"></div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
             {/* Example 1 */}
             <div className="bg-[#0A0F1C]/70 backdrop-blur-md rounded-xl border border-white/5 overflow-hidden transform hover:scale-[1.02] transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/10">
               <div className="border-b border-white/5 px-5 py-4 flex items-center justify-between">
@@ -595,7 +595,7 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
           
-          <div className="mt-14 text-center">
+          <div className="mt-10 sm:mt-14 text-center">
             <Link 
               to="/examples" 
               className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-500/20 to-accent-500/20 border border-white/10 rounded-lg text-white font-medium hover:bg-gradient-to-r hover:from-primary-500/30 hover:to-accent-500/30 transition-all duration-300 group"
@@ -608,17 +608,17 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="relative py-32">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-3xl mx-auto text-center mb-24">
+      <section className="relative py-20 sm:py-32">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
+          <div className="max-w-3xl mx-auto text-center mb-16 sm:mb-24">
             <h3 className="inline-flex items-center px-5 py-2 rounded-full bg-glass text-primary-400 text-sm font-medium mb-6">
               <LuRocket className="mr-2" />
               <span>Simple Process</span>
             </h3>
-            <h2 className="text-4xl font-bold mb-8 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent text-shadow-sm">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-8 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent text-shadow-sm">
               How It Works
             </h2>
-            <p className="text-xl text-white/60">
+            <p className="text-lg sm:text-xl text-white/60">
               Get from idea to implementation in three simple steps
             </p>
           </div>
@@ -627,8 +627,8 @@ const LandingPage: React.FC = () => {
             {/* Connector line */}
             <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500/30 via-secondary-500/30 to-accent-500/30 transform -translate-y-1/2 hidden md:block"></div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-              <div className="group relative p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-16">
+              <div className="group relative p-6 sm:p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:left-auto md:-translate-x-0 md:-left-8 w-16 h-16 rounded-full bg-[#0A0F1C] border border-white/10 flex items-center justify-center text-xl font-bold transform group-hover:scale-110 transition-transform duration-300 shadow-lg z-20">
                   <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 opacity-10"></div>
                   <span className="relative z-10 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent font-mono">01</span>
@@ -644,7 +644,7 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="group relative p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
+              <div className="group relative p-6 sm:p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:left-auto md:-translate-x-0 md:-left-8 w-16 h-16 rounded-full bg-[#0A0F1C] border border-white/10 flex items-center justify-center text-xl font-bold transform group-hover:scale-110 transition-transform duration-300 shadow-lg z-20">
                   <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 opacity-10"></div>
                   <span className="relative z-10 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent font-mono">02</span>
@@ -658,7 +658,7 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="group relative p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
+              <div className="group relative p-6 sm:p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:left-auto md:-translate-x-0 md:-left-8 w-16 h-16 rounded-full bg-[#0A0F1C] border border-white/10 flex items-center justify-center text-xl font-bold transform group-hover:scale-110 transition-transform duration-300 shadow-lg z-20">
                   <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 opacity-10"></div>
                   <span className="relative z-10 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent font-mono">03</span>
@@ -719,57 +719,7 @@ const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-white/5 py-12">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary-500/20 rounded-lg blur-md"></div>
-                  <div className="relative bg-[#0A0F1C] p-2 rounded-lg border border-primary-500/20">
-                    <LuBrainCircuit size={24} className="text-primary-400" />
-                  </div>
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-                  Noder
-                </span>
-              </div>
-              <p className="text-white/50 text-sm mb-6 max-w-md">
-                Transform natural language into production-ready Unreal Engine 5 Blueprints instantly. Cut development time by 80% and bring your game ideas to life faster than ever before.
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-white/50 hover:text-primary-400 transition-colors">
-                  <LuShare2 size={20} />
-                </a>
-                <a href="#" className="text-white/50 hover:text-primary-400 transition-colors">
-                  <LuActivity size={20} />
-                </a>
-                <a href="#" className="text-white/50 hover:text-primary-400 transition-colors">
-                  <LuUsers size={20} />
-                </a>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-white font-medium mb-4">Product</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Roadmap</a></li>
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Examples</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-white font-medium mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Privacy</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-white/50 text-sm mb-4 md:mb-0">
               &copy; {new Date().getFullYear()} Noder. All rights reserved.
             </div>

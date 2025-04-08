@@ -8,5 +8,10 @@ export default defineConfig({
   ],
   server: {
     open: true
+  },
+  // Define environment variables that will be available in the frontend
+  define: {
+    // Use the VITE_SERVER_URL environment variable if available, otherwise use a relative path
+    'process.env.VITE_SERVER_URL': JSON.stringify(process.env.VITE_SERVER_URL || '')
   }
 })

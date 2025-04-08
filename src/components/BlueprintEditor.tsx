@@ -27,7 +27,8 @@ import {
   LuChevronDown,
   LuTrash,
   LuPencil,
-  LuLoader
+  LuLoader,
+  LuX
 } from 'react-icons/lu';
 import BlueprintNode from './nodes/BlueprintNode';
 import BlueprintEdge from './edges/BlueprintEdge';
@@ -71,7 +72,7 @@ export const BlueprintEditor: React.FC = () => {
   const { currentUser } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(window.innerWidth > 768); // Default to open on desktop, closed on mobile
   const [fileSystem, setFileSystem] = useState<FileSystemItem[]>([]);
   const [newItemName, setNewItemName] = useState('');
   const [isCreatingFile, setIsCreatingFile] = useState(false);
@@ -612,304 +613,258 @@ export const BlueprintEditor: React.FC = () => {
     prevNodeCountRef.current = nodes.length;
   }, [nodes.length, handleAutoArrangeNodes, isLoading, isArranging]);
 
+  // Handle window resize to adjust side panel visibility
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setIsSidePanelOpen(true);
+      } else {
+        setIsSidePanelOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div className="w-full h-screen flex bg-[#0A0F1C] overflow-hidden">
-      {/* Background elements */}
-      <div className="fixed inset-0 bg-gradient-radial-to-tr from-primary-900/30 via-[#0A0F1C] to-secondary-900/20 z-0"></div>
-      <div className="fixed inset-0 opacity-30 z-0" style={{ 
-        backgroundImage: 'radial-gradient(rgba(66, 165, 245, 0.1) 1px, transparent 1px)', 
-        backgroundSize: '50px 50px'
-      }}></div>
-      
-      {/* Side Panel */}
-      <div className={`bg-gradient-to-b from-[#0A0F1C] to-[#0F1521] backdrop-blur-sm border-r border-gray-700/40 shadow-xl h-full z-10 transition-all duration-300 overflow-hidden ${isSidePanelOpen ? 'w-64' : 'w-0'}`}>
-        <div className={`flex flex-col h-full ${isSidePanelOpen ? '' : 'hidden'}`}>
-          {/* Side Panel Header */}
-          <div className="flex flex-col border-b border-gray-700/40 bg-[#0A0F1C]/80">
-            {/* Project Title */}
-            <div className="p-3 pb-1">
-              <h2 className="font-bold text-white text-sm uppercase tracking-wider truncate">
-                {currentProject ? currentProject.name : 'Loading Project...'}
-              </h2>
-              {currentProject?.description && (
-                <p className="text-xs text-gray-400 truncate mt-1">{currentProject.description}</p>
-              )}
-            </div>
-            
-            {/* Files Header */}
-            <div className="flex items-center justify-between p-3 pt-2">
-              <div className="flex items-center">
-                <LuFolder className="text-blue-400 mr-2.5" />
-                <h3 className="font-medium text-white tracking-wide text-xs uppercase">Files</h3>
-              </div>
-              <div className="flex space-x-1">
-                <button 
-                  onClick={() => handleCreateFileUI(null)}
-                  className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-gray-800/70 rounded transition-all duration-150"
-                  title="New File"
-                >
-                  <LuFilePlus size={16} />
-                </button>
-                <button 
-                  onClick={() => handleCreateFolderUI(null)}
-                  className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-gray-800/70 rounded transition-all duration-150"
-                  title="New Folder"
-                >
-                  <LuFolderPlus size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
+    <div className="flex flex-col h-screen bg-[#070B15] text-white overflow-hidden">
+      {/* Top Navigation Bar */}
+      <div className="flex items-center justify-between p-4 bg-[#0A0F1C] border-b border-gray-800">
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => navigate(`/projects/${projectId}`)}
+            className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+          >
+            <LuArrowLeft size={20} />
+          </button>
+          <h1 className="text-xl font-bold">{projectName || 'Blueprint Editor'}</h1>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
+            className="p-2 rounded-full bg-blue-900/30 hover:bg-blue-800/40 text-gray-300 hover:text-white transition-all duration-300 border border-blue-700/30 hover:border-blue-600/40 shadow-sm"
+            title={isSidePanelOpen ? "Hide Side Panel" : "Show Side Panel"}
+          >
+            {isSidePanelOpen ? <LuChevronRight size={20} /> : <LuChevronDown size={20} />}
+          </button>
           
-          {/* File Explorer */}
-          <div className="flex-1 overflow-y-auto p-3">
-            {/* Input for creating new file/folder */}
-            {(isCreatingFile || isCreatingFolder) && (
-              <div className="mb-3 p-1.5 bg-blue-900/20 rounded-md border border-blue-800/30">
-                <div className="flex items-center bg-[#0F1521] rounded overflow-hidden shadow-inner">
-                  <input
-                    type="text"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    placeholder={isCreatingFile ? "New file name" : "New folder name"}
-                    className="flex-1 bg-transparent border-none text-white px-3 py-1.5 text-sm focus:outline-none"
-                    onKeyDown={(e) => e.key === 'Enter' && handleCreateItem()}
-                    autoFocus
-                  />
-                  <button 
-                    onClick={handleCreateItem}
-                    className="px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-500 transition-colors"
-                  >
-                    Create
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            {/* File tree */}
-            <div className="space-y-1">
-              {isLoadingFiles ? (
-                <div className="flex justify-center items-center h-32">
-                  <LuLoader className="animate-spin text-blue-500 mr-2" size={18} />
-                  <span className="text-sm text-gray-400">Loading files...</span>
-                </div>
-              ) : hierarchicalFiles.length === 0 ? (
-                <div className="text-center py-6 text-gray-400 text-sm">
-                  <p>No blueprints yet</p>
-                  <p className="mt-2 text-xs">Use the prompt below to generate a blueprint</p>
-                </div>
-              ) : (
-                renderFileSystem(hierarchicalFiles)
-              )}
-              
-              {fileSystemError && (
-                <div className="mt-4 p-3 bg-red-900/30 text-red-200 rounded-md text-xs">
-                  {fileSystemError}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* File Preview or Project Navigation based on selection */}
-          <div className="p-3 border-t border-gray-700/40 bg-[#0A0F1C]/50">
-            <button
-              onClick={() => navigate('/projects')}
-              className="flex items-center w-full px-3 py-2 text-sm text-gray-300 hover:text-white bg-gray-800/30 hover:bg-gray-800/70 rounded-md transition-colors"
-            >
-              <LuArrowLeft className="mr-2" size={14} />
-              <span>Back to Projects</span>
-            </button>
-          </div>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+          >
+            <LuMenu size={20} />
+          </button>
         </div>
       </div>
       
-      {/* Toggle Side Panel Button */}
-      <button
-        onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-blue-900/30 hover:bg-blue-800/50 text-gray-300 hover:text-white p-1.5 rounded-r-md z-20 border border-transparent border-l-0 border-r-blue-800/40 border-y-blue-800/40 shadow-md transition-all duration-200"
-      >
-        {isSidePanelOpen ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        )}
-      </button>
-      
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col relative">
-        {/* Floating Action Menu */}
-        <div className="absolute top-4 right-4 z-30">
-          <div className="relative">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center justify-center p-3 bg-[#0A0F1C]/90 backdrop-blur-md border border-gray-700/40 rounded-full text-gray-300 hover:text-white hover:border-blue-500/40 transition-all duration-200 hover:shadow-md"
-              aria-label="Open menu"
-            >
-              <LuMenu size={20} />
-            </button>
-            
-            {isMenuOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 z-0" 
-                  onClick={() => setIsMenuOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-[#0A0F1C] border border-gray-700/40 overflow-hidden z-40">
-                  <div className="p-1">
-                    <button
-                      onClick={handleExport}
-                      disabled={isLoading || !nodes.length}
-                      className="flex items-center w-full px-4 py-2 text-sm text-left text-gray-300 hover:bg-blue-600/20 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <LuDownload className="mr-3" size={16} />
-                      Export Blueprint
-                    </button>
-                    <button
-                      onClick={handleSaveTemplate}
-                      disabled={isLoading || !nodes.length}
-                      className="flex items-center w-full px-4 py-2 text-sm text-left text-gray-300 hover:bg-blue-600/20 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <LuSave className="mr-3" size={16} />
-                      Save as Template
-                    </button>
-                    <button
-                      onClick={handleClearCanvas}
-                      disabled={isLoading || !nodes.length}
-                      className="flex items-center w-full px-4 py-2 text-sm text-left text-gray-300 hover:bg-red-600/20 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <LuTrash2 className="mr-3" size={16} />
-                      Clear Canvas
-                    </button>
-                    <button
-                      disabled={true} // Placeholder for future feature
-                      className="flex items-center w-full px-4 py-2 text-sm text-left text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <LuFolderArchive className="mr-3" size={16} />
-                      Load Template
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Side Panel */}
+        <div 
+          className={`${
+            isSidePanelOpen ? 'w-64 md:w-72' : 'w-0'
+          } transition-all duration-300 ease-in-out overflow-hidden bg-[#0A0F1C] border-r border-gray-800 flex flex-col`}
+        >
+          <div className="p-4 border-b border-gray-800">
+            <h2 className="text-lg font-semibold mb-2">File Explorer</h2>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => handleCreateFolderUI(null)}
+                className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+                title="New Folder"
+              >
+                <LuFolderPlus size={18} />
+              </button>
+              <button 
+                onClick={() => handleCreateFileUI(null)}
+                className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+                title="New File"
+              >
+                <LuFilePlus size={18} />
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-2">
+            {renderFileSystem(hierarchicalFiles)}
           </div>
         </div>
         
-        <ReactFlowProvider>
-          <div className="flex-1 relative bg-[#0F1521] overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none bg-gradient-radial from-transparent via-transparent to-black/50 z-10"></div>
-            
-            {/* File Status Bar */}
-            {currentSelectedFileId && (
-              <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-900/30 to-transparent px-4 py-2 z-20 flex items-center">
-                <LuFile className="text-blue-400 mr-2" size={16} />
-                <div className="flex-1">
-                  {(() => {
-                    const { files } = useFileSystemStore.getState();
-                    const file = files.find(f => f.id === currentSelectedFileId);
-                    return file ? (
-                      <span className="text-sm text-white">
-                        {file.name}
-                        <span className="text-xs text-gray-400 ml-2">
-                          Last modified: {file.updatedAt 
-                            ? new Date((file.updatedAt as any).seconds * 1000).toLocaleDateString() 
-                            : 'Unknown'}
-                        </span>
-                      </span>
-                    ) : null;
-                  })()}
-                </div>
-                <button 
-                  onClick={() => selectFile(null)}
-                  className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800/40"
-                  title="Close file"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-            )}
-            
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onSelectionChange={onSelectionChange}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              defaultViewport={proactiveDefaultViewport}
-              minZoom={0.05}
-              maxZoom={4}
-              attributionPosition="bottom-left"
-              proOptions={{ hideAttribution: true }}
-              panOnScroll
-              zoomOnScroll
-              zoomOnDoubleClick
-              zoomOnPinch
-            >
-              <Background 
-                variant={BackgroundVariant.Lines} 
-                gap={40}
-                size={1} 
-                color="rgba(255, 255, 255, 0.07)"
-              />
-              <Controls className="bg-[#0A0F1C]/80 backdrop-blur-md border border-gray-700/40 rounded-md shadow-lg" />
-            </ReactFlow>
-
-            <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-xl px-4">
-              <NLPInput 
-                onLoading={handleLoading} 
-                onError={handleError}
-                onGenerationComplete={handleGenerationComplete}
-              />
+        {/* Blueprint Editor */}
+        <div className="flex-1 relative">
+          <ReactFlowProvider>
+            <div className="w-full h-full">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                fitView
+                attributionPosition="bottom-right"
+                onNodeClick={(_, node) => setSelectedNodes([node])}
+                onEdgeClick={(_, edge) => setSelectedEdges([edge])}
+                onPaneClick={() => {
+                  setSelectedNodes([]);
+                  setSelectedEdges([]);
+                }}
+              >
+                <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#444" />
+                <Controls />
+                
+                {/* NLP Input Panel */}
+                <Panel position="top-right" className="m-4">
+                  <NLPInput onGenerate={handleGenerationComplete} />
+                </Panel>
+                
+                {/* Action Buttons */}
+                <Panel position="bottom-right" className="m-4 flex flex-col space-y-2">
+                  <button
+                    onClick={handleSaveTemplate}
+                    className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg"
+                    title="Save Blueprint"
+                  >
+                    <LuSave size={20} />
+                  </button>
+                  <button
+                    onClick={handleExport}
+                    className="p-2 rounded-full bg-green-600 hover:bg-green-700 transition-colors shadow-lg"
+                    title="Export Blueprint"
+                  >
+                    <LuDownload size={20} />
+                  </button>
+                  <button
+                    onClick={handleClearCanvas}
+                    className="p-2 rounded-full bg-red-600 hover:bg-red-700 transition-colors shadow-lg"
+                    title="Delete Blueprint"
+                  >
+                    <LuTrash2 size={20} />
+                  </button>
+                </Panel>
+                
+                {/* Loading Overlay */}
+                {isLoading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="flex flex-col items-center">
+                      <LuLoader className="w-8 h-8 text-blue-500 animate-spin mb-2" />
+                      <p className="text-white">Generating Blueprint...</p>
+                    </div>
+                  </div>
+                )}
+              </ReactFlow>
             </div>
-
-            {isLoading && (
-              <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center z-50">
-                <div className="w-8 h-8 border-2 border-gray-500 border-t-blue-400 rounded-full animate-spin mb-3"></div>
-                <p className="text-sm">Processing...</p>
-              </div>
-            )}
-
-            {isArranging && (
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center z-50">
-                <div className="w-8 h-8 border-2 border-gray-500 border-t-blue-400 rounded-full animate-spin mb-3"></div>
-                <p className="text-sm">Arranging blueprint...</p>
-              </div>
-            )}
-
-            {errorMessage && (
-              <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-red-600 text-white py-2 px-4 rounded-lg flex items-center shadow-lg z-50 min-w-[300px]">
-                <p className="flex-1 m-0 text-sm">{errorMessage}</p>
-                <button 
-                  onClick={() => setErrorMessage(null)} 
-                  className="bg-transparent border-none text-white text-lg cursor-pointer pl-4 leading-none"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-green-600 text-white py-2 px-4 rounded-lg flex items-center shadow-lg z-50 min-w-[300px] animate-fade-in">
-                <div className="mr-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 6L9 17l-5-5"></path>
-                  </svg>
-                </div>
-                <p className="flex-1 m-0 text-sm">{successMessage}</p>
-              </div>
-            )}
-          </div>
-        </ReactFlowProvider>
+          </ReactFlowProvider>
+        </div>
       </div>
+      
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+          <div className="bg-[#0A0F1C] rounded-lg p-6 w-11/12 max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Blueprint Actions</h2>
+              <button 
+                onClick={() => setIsMenuOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+              >
+                <LuX size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <button
+                onClick={() => {
+                  handleSaveTemplate();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full p-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <LuSave size={18} />
+                <span>Save Blueprint</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleExport();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full p-3 rounded-lg bg-green-600 hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <LuDownload size={18} />
+                <span>Export Blueprint</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleClearCanvas();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full p-3 rounded-lg bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <LuTrash2 size={18} />
+                <span>Delete Blueprint</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setIsArranging(true);
+                  setIsMenuOpen(false);
+                }}
+                className="w-full p-3 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2"
+              >
+                <LuFolderArchive size={18} />
+                <span>Arrange Nodes</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-md">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <LuTrash2 size={20} />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium">Error</h3>
+              <p className="text-sm mt-1">{errorMessage}</p>
+            </div>
+            <button 
+              onClick={() => setErrorMessage(null)}
+              className="ml-4 flex-shrink-0 text-white hover:text-gray-200"
+            >
+              <LuX size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Success Message */}
+      {successMessage && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-md">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <LuSave size={20} />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium">Success</h3>
+              <p className="text-sm mt-1">{successMessage}</p>
+            </div>
+            <button 
+              onClick={() => setSuccessMessage(null)}
+              className="ml-4 flex-shrink-0 text-white hover:text-gray-200"
+            >
+              <LuX size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }; 

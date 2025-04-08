@@ -52,6 +52,7 @@ IMPORTANT RULES:
 - Pins: Include COMPLETE and ACCURATE inputs/outputs arrays for ALL standard pins, in order. Use exact PinTypes. Do NOT use empty strings ("") for pin names; use descriptive names. Provide sensible default 'value' or null (JSON keyword null, not 'None') for unconnected INPUT pins. Use JSON booleans true/false (lowercase).
 - Color: Use color accurate to Unreal's blueprint colors.
 - Connections: CRITICAL: sourcePinName MUST exist in source node's outputs. targetPinName MUST exist in target node's inputs. Ensure types are compatible.
+- Appropriate Node Types: Use the correct node type for the node.
 - Minimality: Only include essential nodes/connections but fulfill user request; generate a good amount of tokens.
 - Output Format: ONLY the pure, valid JSON object. NO comments. Pay strict attention to JSON syntax (quotes, commas, NO trailing commas).
 - Handle unknown nodes: Use your knowledge to generate nodes not in a predefined database, ensuring they are accurate.

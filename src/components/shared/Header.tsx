@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LuBrainCircuit, LuLogOut, LuUser } from 'react-icons/lu';
+import { LuBrainCircuit, LuLogOut, LuUser, LuMenu, LuX } from 'react-icons/lu';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -29,6 +30,19 @@ const Header: React.FC = () => {
       console.error('Failed to log out', error);
     }
   };
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isMobileMenuOpen && !target.closest('.mobile-menu') && !target.closest('.mobile-menu-toggle')) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobileMenuOpen]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
@@ -55,8 +69,16 @@ const Header: React.FC = () => {
             </h1>
           </div>
           
-          {/* Navigation */}
-          <nav className="flex space-x-6 items-center">
+          {/* Mobile menu toggle */}
+          <button 
+            className="mobile-menu-toggle md:hidden text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <LuX size={24} /> : <LuMenu size={24} />}
+          </button>
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-6 items-center">
             <Link to="/" className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 hover:text-shadow text-sm font-medium">Home</Link>
             <Link to="/projects" className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 hover:text-shadow text-sm font-medium">Projects</Link>
             <Link to="/roadmap" className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 hover:text-shadow text-sm font-medium">Roadmap</Link>
@@ -103,18 +125,72 @@ const Header: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-secondary-500 to-accent-600 rounded-full opacity-0 group-hover:opacity-100 blur transition duration-500"></div>
-                <Link 
-                  to="/login" 
-                  className="relative px-4 py-1.5 bg-[#0A0F1C] border border-secondary-700/30 rounded-full group-hover:border-white/0 transition-all duration-300 text-sm font-medium"
-                >
-                  Login
-                </Link>
-              </div>
+              <Link 
+                to="/login" 
+                className="px-4 py-1.5 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300"
+              >
+                Sign In
+              </Link>
             )}
           </nav>
         </div>
+        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="mobile-menu absolute top-full left-0 right-0 mt-2 bg-[#0A0F1C]/95 backdrop-blur-md border border-secondary-800/40 rounded-xl py-3 px-4 shadow-xl z-50">
+            <nav className="flex flex-col space-y-3">
+              <Link 
+                to="/" 
+                className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 py-2 px-3 rounded-lg hover:bg-white/5"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link 
+                to="/projects" 
+                className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 py-2 px-3 rounded-lg hover:bg-white/5"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Projects
+              </Link>
+              <Link 
+                to="/roadmap" 
+                className="text-secondary-200/90 hover:text-secondary-100 transition-all duration-200 py-2 px-3 rounded-lg hover:bg-white/5"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Roadmap
+              </Link>
+              
+              {currentUser ? (
+                <>
+                  <div className="border-t border-gray-800 my-2"></div>
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium text-gray-200">{currentUser.displayName || 'User'}</p>
+                    <p className="text-xs text-gray-400 truncate">{currentUser.email}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center rounded-lg"
+                  >
+                    <LuLogOut className="mr-2 text-gray-400" size={14} />
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="mt-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              )}
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

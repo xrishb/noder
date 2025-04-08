@@ -1,6 +1,8 @@
 // import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { LLMBlueprintData } from '../types/BlueprintTypes';
 
+// Get the API URL from environment variables or use a relative path
+const API_BASE_URL = import.meta.env.VITE_SERVER_URL || '';
 
 /**
  * Service for generating blueprint data by calling our backend API.
@@ -16,9 +18,9 @@ export class BlueprintGenerationService {
    * @throws If the API call fails or returns an error status.
    */
   static async generateFromQuery(query: string): Promise<string> { // Returns raw string now
-    console.log("Sending query to backend API (http://localhost:3001)...");
+    console.log("Sending query to backend API...");
     
-    const backendUrl = '/api/generateBlueprint';
+    const backendUrl = `${API_BASE_URL}/api/generateBlueprint`;
 
     try {
       const response = await fetch(backendUrl, { // Use the specific URL

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from './shared/Header';
-import { LuSquare, LuLayers, LuBrainCircuit, LuPuzzle, LuRocket, LuLightbulb, LuCheck } from 'react-icons/lu';
+import { LuSquare, LuLayers, LuBrainCircuit, LuPuzzle, LuRocket, LuLightbulb, LuCheck, LuArrowRight, LuCode, LuBox, LuSparkles, LuUsers, LuGlobe, LuGithub } from 'react-icons/lu';
 
 // Interface for roadmap phases
 interface RoadmapPhase {
@@ -20,7 +20,7 @@ interface RoadmapItem {
 
 const RoadmapPage: React.FC = () => {
   // Track which phases are expanded
-  const [expandedPhases, setExpandedPhases] = useState<string[]>(['phase1']);
+  const [expandedPhases, setExpandedPhases] = useState<string[]>(['phase-1']);
 
   // Toggle phase expansion
   const togglePhase = (phaseId: string) => {
