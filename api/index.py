@@ -109,12 +109,17 @@ CORS(app, resources={
     r"/api/*": {
         "origins": [
             "http://localhost:5173",  # Local development
-            "https://noder.vercel.app",  # Vercel deployment
-            "https://noder-git-main-yourusername.vercel.app",  # Vercel preview deployments
-            os.getenv("FRONTEND_URL", "")  # Custom frontend URL from environment
+            "https://noder.vercel.app",  # Production Vercel deployment
+            "https://noder-taupe.vercel.app", # Specific preview deployment causing issues
+            # Add a pattern for Vercel preview deployments if needed
+            # "https://noder-*-yourusername.vercel.app", 
+            os.getenv("FRONTEND_URL", ""), # Custom frontend URL from environment
+            os.getenv("VERCEL_URL", ""), # Automatically add Vercel deployment URL
+            os.getenv("VERCEL_BRANCH_URL", "") # Automatically add Vercel branch preview URL
         ],
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True # May be needed depending on auth
     }
 })
 
