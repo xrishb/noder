@@ -23,6 +23,7 @@ export class BlueprintGenerationService {
     console.log("Sending query to backend API...");
     
     const backendUrl = `${API_BASE_URL}/api/generateBlueprint`;
+    console.log(`Using backend URL: ${backendUrl}`);
 
     try {
       const response = await fetch(backendUrl, { // Use the specific URL
