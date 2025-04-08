@@ -15,9 +15,248 @@ import {
   LuSunMoon
 } from 'react-icons/lu';
 import Header from './shared/Header';
+import { useAuth } from '../contexts/AuthContext';
+
+// Add this component before the LandingPage component
+const BlueprintDiagram: React.FC = () => {
+  return (
+    <div className="w-full h-full relative">
+      {/* Background grid */}
+      <div className="absolute inset-0 bg-[#060A14] opacity-50" style={{ 
+        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+        backgroundSize: '20px 20px'
+      }}></div>
+      
+      {/* Nodes */}
+      <div className="absolute top-1/4 left-1/4 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Input Action</div>
+        <div className="text-xs text-white/60">Jump</div>
+        <div className="mt-2 pt-2 border-t border-primary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-primary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Pressed</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/4 left-1/2 w-40 h-auto bg-[#0A0F1C] border border-accent-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-accent-300 font-mono border-b border-accent-500/30 pb-1 mb-1">Branch</div>
+        <div className="text-xs text-white/60">Is Valid</div>
+        <div className="mt-2 pt-2 border-t border-accent-500/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-green-400 mr-1"></div>
+              <div className="text-xs text-white/60">True</div>
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
+              <div className="text-xs text-white/60">False</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/2 left-1/3 w-40 h-auto bg-[#0A0F1C] border border-secondary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-secondary-300 font-mono border-b border-secondary-500/30 pb-1 mb-1">Apply Force</div>
+        <div className="text-xs text-white/60">Upward</div>
+        <div className="mt-2 pt-2 border-t border-secondary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-secondary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Force</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/2 left-2/3 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Play Sound</div>
+        <div className="text-xs text-white/60">Jump Sound</div>
+        <div className="mt-2 pt-2 border-t border-primary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-primary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Sound</div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Connections */}
+      <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 1 }}>
+        {/* Input Action to Branch */}
+        <path d="M 140 122 C 160 122 200 122 220 122" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+        
+        {/* Branch True output to Apply Force */}
+        <path d="M 260 124 C 280 124 300 124 300 150 C 300 176 280 176 260 176" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+        
+        {/* Branch False output to Play Sound */}
+        <path d="M 320 124 C 340 124 350 124 350 150 C 350 176 340 176 320 176" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+      </svg>
+      
+      {/* Animated dots on connections */}
+      <div className="absolute top-[122px] left-[180px] w-2 h-2 bg-primary-400 rounded-full animate-pulse"></div>
+      <div className="absolute top-[150px] left-[280px] w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      <div className="absolute top-[150px] left-[335px] w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+    </div>
+  );
+};
+
+// Add a second blueprint diagram for variety
+const BlueprintDiagram2: React.FC = () => {
+  return (
+    <div className="w-full h-full relative">
+      {/* Background grid */}
+      <div className="absolute inset-0 bg-[#060A14] opacity-50" style={{ 
+        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+        backgroundSize: '20px 20px'
+      }}></div>
+      
+      {/* Nodes */}
+      <div className="absolute top-1/4 left-1/4 w-40 h-auto bg-[#0A0F1C] border border-accent-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-accent-300 font-mono border-b border-accent-500/30 pb-1 mb-1">Event BeginPlay</div>
+        <div className="text-xs text-white/60">Game Start</div>
+        <div className="mt-2 pt-2 border-t border-accent-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-accent-400 mr-1"></div>
+            <div className="text-xs text-white/60">Execute</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/4 left-1/2 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Set Timer</div>
+        <div className="text-xs text-white/60">Spawn Enemy</div>
+        <div className="mt-2 pt-2 border-t border-primary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-primary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Timer</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/2 left-1/3 w-40 h-auto bg-[#0A0F1C] border border-secondary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-secondary-300 font-mono border-b border-secondary-500/30 pb-1 mb-1">Spawn Actor</div>
+        <div className="text-xs text-white/60">Enemy</div>
+        <div className="mt-2 pt-2 border-t border-secondary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-secondary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Actor</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/2 left-2/3 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Set Location</div>
+        <div className="text-xs text-white/60">Random</div>
+        <div className="mt-2 pt-2 border-t border-primary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-primary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Location</div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Connections */}
+      <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 1 }}>
+        {/* Event BeginPlay to Set Timer */}
+        <path d="M 140 122 C 160 122 180 122 200 122" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+        
+        {/* Set Timer to Spawn Actor */}
+        <path d="M 240 128 C 260 128 260 140 260 150 C 260 160 240 170 220 170" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+        
+        {/* Spawn Actor to Set Location */}
+        <path d="M 175 176 C 195 176 215 176 280 176" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+      </svg>
+      
+      {/* Animated dots on connections */}
+      <div className="absolute top-[122px] left-[170px] w-2 h-2 bg-primary-400 rounded-full animate-pulse"></div>
+      <div className="absolute top-[150px] left-[230px] w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      <div className="absolute top-[176px] left-[220px] w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+    </div>
+  );
+};
+
+// Add a third blueprint diagram for more variety
+const BlueprintDiagram3: React.FC = () => {
+  return (
+    <div className="w-full h-full relative">
+      {/* Background grid */}
+      <div className="absolute inset-0 bg-[#060A14] opacity-50" style={{ 
+        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+        backgroundSize: '20px 20px'
+      }}></div>
+      
+      {/* Nodes */}
+      <div className="absolute top-1/4 left-1/4 w-40 h-auto bg-[#0A0F1C] border border-secondary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-secondary-300 font-mono border-b border-secondary-500/30 pb-1 mb-1">Event Tick</div>
+        <div className="text-xs text-white/60">Every Frame</div>
+        <div className="mt-2 pt-2 border-t border-secondary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-secondary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Execute</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/4 left-1/2 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Get Player Location</div>
+        <div className="text-xs text-white/60">Current</div>
+        <div className="mt-2 pt-2 border-t border-primary-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-primary-400 mr-1"></div>
+            <div className="text-xs text-white/60">Location</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/2 left-1/3 w-40 h-auto bg-[#0A0F1C] border border-accent-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-accent-300 font-mono border-b border-accent-500/30 pb-1 mb-1">Distance</div>
+        <div className="text-xs text-white/60">To Enemy</div>
+        <div className="mt-2 pt-2 border-t border-accent-500/30">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-accent-400 mr-1"></div>
+            <div className="text-xs text-white/60">Float</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute top-1/2 left-2/3 w-40 h-auto bg-[#0A0F1C] border border-primary-500/50 rounded-md p-2 shadow-lg">
+        <div className="text-xs text-primary-300 font-mono border-b border-primary-500/30 pb-1 mb-1">Branch</div>
+        <div className="text-xs text-white/60">Is Less Than</div>
+        <div className="mt-2 pt-2 border-t border-primary-500/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-green-400 mr-1"></div>
+              <div className="text-xs text-white/60">True</div>
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
+              <div className="text-xs text-white/60">False</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Connections */}
+      <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 1 }}>
+        {/* Event Tick to Get Player Location */}
+        <path d="M 140 122 C 160 122 180 122 200 122" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+        
+        {/* Get Player Location to Distance */}
+        <path d="M 220 128 C 240 128 240 140 240 150 C 240 160 220 170 200 170" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+        
+        {/* Distance to Branch */}
+        <path d="M 153 176 C 173 176 193 176 280 176" stroke="rgba(66, 165, 245, 0.5)" strokeWidth="2" fill="none" />
+      </svg>
+      
+      {/* Animated dots on connections */}
+      <div className="absolute top-[122px] left-[170px] w-2 h-2 bg-primary-400 rounded-full animate-pulse"></div>
+      <div className="absolute top-[150px] left-[220px] w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      <div className="absolute top-[176px] left-[220px] w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+    </div>
+  );
+};
 
 const LandingPage: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,27 +312,28 @@ const LandingPage: React.FC = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-5">
-                <Link
-                  to="/signup"
-                  className="px-8 py-4 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium text-lg transition-transform hover:scale-105 hover:shadow-lg hover:shadow-primary-500/20 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-                >
-                  Start Creating for Free
-                </Link>
+                {!currentUser && (
+                  <Link
+                    to="/signup"
+                    className="px-8 py-4 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium text-lg transition-transform hover:scale-105 hover:shadow-lg hover:shadow-primary-500/20 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  >
+                    Start Creating for Free
+                  </Link>
+                )}
+                {currentUser && (
+                  <Link
+                    to="/projects"
+                    className="px-8 py-4 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium text-lg transition-transform hover:scale-105 hover:shadow-lg hover:shadow-primary-500/20 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  >
+                    Go to My Projects
+                  </Link>
+                )}
                 <Link
                   to="/roadmap"
                   className="px-8 py-4 rounded-full bg-white/10 text-white backdrop-blur-sm font-medium text-lg hover:bg-white/15 transition-all"
                 >
                   View Roadmap
                 </Link>
-              </div>
-              
-              <div className="mt-10 pt-6 border-t border-white/5">
-                <p className="text-sm text-white/40 mb-4">Trusted by game developers from:</p>
-                <div className="flex flex-wrap items-center gap-8">
-                  <img src="/logos/studio-logo-1.svg" alt="Studio Logo" className="h-6 opacity-60 hover:opacity-100 transition-opacity" />
-                  <img src="/logos/studio-logo-2.svg" alt="Studio Logo" className="h-6 opacity-60 hover:opacity-100 transition-opacity" />
-                  <img src="/logos/studio-logo-3.svg" alt="Studio Logo" className="h-6 opacity-60 hover:opacity-100 transition-opacity" />
-                </div>
               </div>
             </div>
             
@@ -114,12 +354,7 @@ const LandingPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="h-[300px] bg-[#060A14] rounded-lg border border-white/5 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="relative flex items-center justify-center">
-                        <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="absolute text-white/60 text-xs">Generating...</span>
-                      </div>
-                    </div>
+                    <BlueprintDiagram />
                   </div>
                 </div>
               </div>
@@ -183,18 +418,8 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex-1 relative h-[350px] bg-[#060A14]/50 rounded-lg border border-white/5">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-full max-w-sm">
-                      <div className="text-white/30 text-center mb-4">
-                        <div className="w-16 h-16 rounded-full bg-primary-500/10 mx-auto flex items-center justify-center">
-                          <LuBrainCircuit size={28} className="text-primary-400" />
-                        </div>
-                        <p className="mt-4 text-sm">Blueprint visualization will appear here</p>
-                        <div className="mt-3 w-12 h-12 rounded-full mx-auto border-t-2 border-accent-500 animate-spin"></div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex-1 relative h-[350px] bg-[#060A14]/50 rounded-lg border border-white/5 overflow-hidden">
+                  <BlueprintDiagram />
                 </div>
               </div>
             </div>
@@ -300,7 +525,7 @@ const LandingPage: React.FC = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Example 1 */}
-            <div className="bg-[#0A0F1C]/70 backdrop-blur-md rounded-xl border border-white/5 overflow-hidden">
+            <div className="bg-[#0A0F1C]/70 backdrop-blur-md rounded-xl border border-white/5 overflow-hidden transform hover:scale-[1.02] transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/10">
               <div className="border-b border-white/5 px-5 py-4 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-8 h-8 rounded bg-primary-500/20 flex items-center justify-center">
@@ -317,19 +542,25 @@ const LandingPage: React.FC = () => {
                   </p>
                 </div>
                 
-                <div className="aspect-video bg-[#060A14] rounded-lg border border-white/5 relative overflow-hidden">
-                  <img 
-                    src="/examples/health-system-blueprint.jpg" 
-                    alt="Health System Blueprint" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060A14] to-transparent opacity-40"></div>
+                <div className="aspect-video bg-[#060A14] rounded-lg border border-white/5 relative overflow-hidden p-2">
+                  <div className="w-full h-full">
+                    <BlueprintDiagram />
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-[#060A14] to-transparent">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-white/60">BP_PlayerHealthSystem.uasset</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="px-2 py-1 rounded bg-primary-500/20 text-primary-400 text-xs">Export</div>
+                        <div className="px-2 py-1 rounded bg-accent-500/20 text-accent-400 text-xs">Edit</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             
             {/* Example 2 */}
-            <div className="bg-[#0A0F1C]/70 backdrop-blur-md rounded-xl border border-white/5 overflow-hidden">
+            <div className="bg-[#0A0F1C]/70 backdrop-blur-md rounded-xl border border-white/5 overflow-hidden transform hover:scale-[1.02] transition-all duration-300 hover:shadow-xl hover:shadow-accent-500/10">
               <div className="border-b border-white/5 px-5 py-4 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-8 h-8 rounded bg-accent-500/20 flex items-center justify-center">
@@ -346,13 +577,19 @@ const LandingPage: React.FC = () => {
                   </p>
                 </div>
                 
-                <div className="aspect-video bg-[#060A14] rounded-lg border border-white/5 relative overflow-hidden">
-                  <img 
-                    src="/examples/day-night-blueprint.jpg" 
-                    alt="Day Night Cycle Blueprint" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060A14] to-transparent opacity-40"></div>
+                <div className="aspect-video bg-[#060A14] rounded-lg border border-white/5 relative overflow-hidden p-2">
+                  <div className="w-full h-full">
+                    <BlueprintDiagram3 />
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-[#060A14] to-transparent">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-white/60">BP_DayNightCycle.uasset</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="px-2 py-1 rounded bg-primary-500/20 text-primary-400 text-xs">Export</div>
+                        <div className="px-2 py-1 rounded bg-accent-500/20 text-accent-400 text-xs">Edit</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -391,21 +628,54 @@ const LandingPage: React.FC = () => {
             <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500/30 via-secondary-500/30 to-accent-500/30 transform -translate-y-1/2 hidden md:block"></div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-              <StepCard 
-                number="01" 
-                title="Enter Your Request" 
-                description="Describe the functionality you need using natural language."
-              />
-              <StepCard 
-                number="02" 
-                title="Automatic Blueprint Generation" 
-                description="Our system transforms your request into the right nodes and connections."
-              />
-              <StepCard 
-                number="03" 
-                title="Export & Use" 
-                description="Copy directly into Unreal Engine or save for later use."
-              />
+              <div className="group relative p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:left-auto md:-translate-x-0 md:-left-8 w-16 h-16 rounded-full bg-[#0A0F1C] border border-white/10 flex items-center justify-center text-xl font-bold transform group-hover:scale-110 transition-transform duration-300 shadow-lg z-20">
+                  <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 opacity-10"></div>
+                  <span className="relative z-10 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent font-mono">01</span>
+                </div>
+                <div className="pt-8 md:pt-0 md:pl-8">
+                  <h4 className="text-xl font-bold mb-4 text-white group-hover:text-shadow transition-all duration-300">Describe Your Game Logic</h4>
+                  <p className="text-white/60 group-hover:text-white/70 transition-colors duration-300">Simply explain what you want your game to do in plain language. No coding required.</p>
+                  <div className="mt-6 bg-[#060A14] rounded-lg p-4 border border-white/5">
+                    <p className="text-white/80 font-mono text-sm">
+                      <span className="text-accent-400">&gt;</span> Create a character that can double jump and wall run
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group relative p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:left-auto md:-translate-x-0 md:-left-8 w-16 h-16 rounded-full bg-[#0A0F1C] border border-white/10 flex items-center justify-center text-xl font-bold transform group-hover:scale-110 transition-transform duration-300 shadow-lg z-20">
+                  <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 opacity-10"></div>
+                  <span className="relative z-10 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent font-mono">02</span>
+                </div>
+                <div className="pt-8 md:pt-0 md:pl-8">
+                  <h4 className="text-xl font-bold mb-4 text-white group-hover:text-shadow transition-all duration-300">AI Generates Blueprint</h4>
+                  <p className="text-white/60 group-hover:text-white/70 transition-colors duration-300">Our AI transforms your description into a fully functional Unreal Engine blueprint.</p>
+                  <div className="mt-6 bg-[#060A14] rounded-lg p-4 border border-white/5 h-[100px] overflow-hidden">
+                    <BlueprintDiagram2 />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group relative p-8 bg-glass rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/10 hover:shadow-card-hover z-10 h-full">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:left-auto md:-translate-x-0 md:-left-8 w-16 h-16 rounded-full bg-[#0A0F1C] border border-white/10 flex items-center justify-center text-xl font-bold transform group-hover:scale-110 transition-transform duration-300 shadow-lg z-20">
+                  <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 opacity-10"></div>
+                  <span className="relative z-10 bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent font-mono">03</span>
+                </div>
+                <div className="pt-8 md:pt-0 md:pl-8">
+                  <h4 className="text-xl font-bold mb-4 text-white group-hover:text-shadow transition-all duration-300">Import to Unreal Engine</h4>
+                  <p className="text-white/60 group-hover:text-white/70 transition-colors duration-300">One-click export to your Unreal Engine project. Ready to use immediately.</p>
+                  <div className="mt-6 bg-[#060A14] rounded-lg p-4 border border-white/5 flex items-center justify-center">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 rounded bg-primary-500/20 flex items-center justify-center">
+                        <LuCode className="text-primary-400" />
+                      </div>
+                      <div className="text-white/80 font-mono text-sm">Import to UE5</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -426,12 +696,21 @@ const LandingPage: React.FC = () => {
               <p className="text-xl text-white/70 mb-10 max-w-2xl mx-auto">
                 Join Noder today and transform how you create Blueprint functionality.
               </p>
-              <Link 
-                to="/signup" 
-                className="inline-block px-8 py-4 bg-white rounded-lg text-[#0A0F1C] font-semibold hover:bg-blue-50 transition-all duration-200 transform hover:scale-105 hover:shadow-lg hover:shadow-white/25"
-              >
-                Sign Up for Free
-              </Link>
+              {!currentUser ? (
+                <Link 
+                  to="/signup" 
+                  className="inline-block px-8 py-4 bg-white rounded-lg text-[#0A0F1C] font-semibold hover:bg-blue-50 transition-all duration-200 transform hover:scale-105 hover:shadow-lg hover:shadow-white/25"
+                >
+                  Sign Up for Free
+                </Link>
+              ) : (
+                <Link 
+                  to="/projects" 
+                  className="inline-block px-8 py-4 bg-white rounded-lg text-[#0A0F1C] font-semibold hover:bg-blue-50 transition-all duration-200 transform hover:scale-105 hover:shadow-lg hover:shadow-white/25"
+                >
+                  Go to My Projects
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -440,20 +719,64 @@ const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-white/5 py-12">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-3 mb-6 md:mb-0">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary-500/20 rounded-lg blur-md"></div>
-                <div className="relative bg-[#0A0F1C] p-2 rounded-lg border border-primary-500/20">
-                  <LuBrainCircuit size={24} className="text-primary-400" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary-500/20 rounded-lg blur-md"></div>
+                  <div className="relative bg-[#0A0F1C] p-2 rounded-lg border border-primary-500/20">
+                    <LuBrainCircuit size={24} className="text-primary-400" />
+                  </div>
                 </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
+                  Noder
+                </span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-                Noder
-              </span>
+              <p className="text-white/50 text-sm mb-6 max-w-md">
+                Transform natural language into production-ready Unreal Engine 5 Blueprints instantly. Cut development time by 80% and bring your game ideas to life faster than ever before.
+              </p>
+              <div className="flex space-x-4">
+                <a href="#" className="text-white/50 hover:text-primary-400 transition-colors">
+                  <LuShare2 size={20} />
+                </a>
+                <a href="#" className="text-white/50 hover:text-primary-400 transition-colors">
+                  <LuActivity size={20} />
+                </a>
+                <a href="#" className="text-white/50 hover:text-primary-400 transition-colors">
+                  <LuUsers size={20} />
+                </a>
+              </div>
             </div>
-            <div className="text-white/50 text-sm">
+            
+            <div>
+              <h4 className="text-white font-medium mb-4">Product</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Features</a></li>
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Roadmap</a></li>
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Examples</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-white font-medium mb-4">Company</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Blog</a></li>
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" className="text-white/50 hover:text-white transition-colors">Privacy</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center">
+            <div className="text-white/50 text-sm mb-4 md:mb-0">
               &copy; {new Date().getFullYear()} Noder. All rights reserved.
+            </div>
+            <div className="flex space-x-6">
+              <a href="#" className="text-white/50 hover:text-white transition-colors text-sm">Terms</a>
+              <a href="#" className="text-white/50 hover:text-white transition-colors text-sm">Privacy</a>
+              <a href="#" className="text-white/50 hover:text-white transition-colors text-sm">Cookies</a>
             </div>
           </div>
         </div>
