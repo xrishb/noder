@@ -32,15 +32,13 @@ export const NLPInput: React.FC<NLPInputProps> = ({
       onLoading(true);
       onError(null); // Clear previous errors
       
-      const generatedBlueprint = await BlueprintGenerationService.generateFromQuery(query);
-      loadBlueprint(generatedBlueprint);
+      await loadBlueprint(query);
       
       // Call the onGenerationComplete callback if provided
       if (onGenerationComplete) {
-        onGenerationComplete(generatedBlueprint);
+        onGenerationComplete(query);
       }
       
-      // Don't update placeholder, keep it simple
       setQuery('');
     } catch (error) {
       console.error('Blueprint generation failed:', error);
