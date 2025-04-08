@@ -99,6 +99,8 @@ export const useBlueprint = () => {
       const llmBlueprintData = parseAndValidateResponse(rawResponseText);
 
       // --- Transformation Logic (remains the same) ---
+      console.log("Parsed LLM Data:", llmBlueprintData); // Add detailed logging
+      
       const newNodes: Node<NodeData>[] = [];
       const newEdges: Edge[] = [];
       const tempIdToRealIdMap = new Map<string, string>();
@@ -108,6 +110,12 @@ export const useBlueprint = () => {
       let currentY = 100;
 
       // 1. Process Nodes (top level)
+      // Add checks for existence and type before iterating
+      if (!llmBlueprintData.nodes || !Array.isArray(llmBlueprintData.nodes)) {
+          console.error("Validation Error: llmBlueprintData.nodes is not a valid array:", llmBlueprintData.nodes);
+          throw new Error('Invalid blueprint data: nodes array is missing or invalid.');
+      }
+      
       for (const llmNode of llmBlueprintData.nodes) {
         if (!llmNode || !llmNode.id || !llmNode.title || !llmNode.nodeType || !llmNode.inputs || !llmNode.outputs) {
           console.warn(`Skipping invalid node:`, llmNode);
@@ -154,6 +162,12 @@ export const useBlueprint = () => {
       }); // Use real ID for map key
 
       // 2. Process Connections (top level)
+      // Add checks for existence and type before iterating
+      if (!llmBlueprintData.connections || !Array.isArray(llmBlueprintData.connections)) {
+          console.error("Validation Error: llmBlueprintData.connections is not a valid array:", llmBlueprintData.connections);
+          throw new Error('Invalid blueprint data: connections array is missing or invalid.');
+      }
+      
       for (const connection of llmBlueprintData.connections) {
          if (!connection || !connection.sourceNodeId || !connection.sourcePinName || !connection.targetNodeId || !connection.targetPinName) {
             console.warn(`Skipping invalid connection:`, connection);
