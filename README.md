@@ -47,6 +47,9 @@ Noder is an AI-powered platform that transforms natural language into production
    VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
    VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
    VITE_FIREBASE_APP_ID=your_firebase_app_id
+   
+   # API URL (for Render deployment)
+   VITE_API_URL=https://your-render-app.onrender.com
    ```
 
 4. Start the development server:
@@ -60,9 +63,10 @@ Noder is an AI-powered platform that transforms natural language into production
 
 ```
 noder/
-├── api/                  # Backend API (Vercel serverless functions)
+├── api/                  # Backend API (Vercel serverless functions or Render web service)
 │   ├── index.py          # Main API handler
-│   └── requirements.txt  # Python dependencies
+│   ├── requirements.txt  # Python dependencies
+│   └── README.md         # API deployment instructions
 ├── public/               # Static assets
 ├── src/                  # Frontend source code
 │   ├── components/       # React components
@@ -80,19 +84,43 @@ noder/
 
 ## 🚀 Deployment
 
-Noder is configured for easy deployment on Vercel:
+### Frontend Deployment (Vercel)
+
+Noder's frontend is configured for easy deployment on Vercel:
 
 1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
 2. Connect your repository to Vercel
 3. Configure the following environment variables in your Vercel project settings:
-   - `GEMINI_API_KEY`
    - `VITE_FIREBASE_API_KEY`
    - `VITE_FIREBASE_AUTH_DOMAIN`
    - `VITE_FIREBASE_PROJECT_ID`
    - `VITE_FIREBASE_STORAGE_BUCKET`
    - `VITE_FIREBASE_MESSAGING_SENDER_ID`
    - `VITE_FIREBASE_APP_ID`
+   - `VITE_API_URL` (if using Render for backend)
 4. Deploy your project
+
+### Backend Deployment Options
+
+#### Option 1: Vercel Serverless Functions (Current Setup)
+
+The backend is currently configured for Vercel serverless functions. Configure the following environment variable:
+- `GEMINI_API_KEY`
+
+#### Option 2: Render Web Service (Recommended)
+
+For better performance with AI operations, deploy the backend on Render:
+
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Set the following configuration:
+   - **Environment**: Python
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn index:app`
+   - **Root Directory**: `api`
+4. Add the following environment variable:
+   - `GEMINI_API_KEY`: Your Google Gemini API key
+5. Update the frontend's `VITE_API_URL` to point to your Render service URL
 
 ## 🔧 Usage
 

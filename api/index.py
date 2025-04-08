@@ -1,16 +1,22 @@
 # noder/api/index.py
-# This file defines a Vercel Serverless Function using Flask.
-# Requests to /api/generateBlueprint or /api/health will be handled by this function.
+# This file defines a Flask application for the Noder API.
+# It can be deployed on Render or Vercel.
 
 import os
+import json
+import logging
 import google.generativeai as genai
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
-import logging
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file if present (mainly for local dev)
 # In Vercel, variables are set in the project settings
@@ -96,7 +102,23 @@ JSON Output:
 # Configure Flask App
 # Vercel expects the Flask app instance to be named 'app'
 app = Flask(__name__)
-CORS(app) # Enable CORS - configure origins more strictly in production if needed
+
+# Enable CORS with more specific configuration
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:5173",  # Local development
+            "https://noder.vercel.app",  # Vercel deployment
+            "https://noder-git-main-yourusername.vercel.app",  # Vercel preview deployments
+            os.getenv("FRONTEND_URL", "")  # Custom frontend URL from environment
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
+# Fix for running behind a proxy (like Render)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # Configure Gemini API
 # IMPORTANT: Read the API Key from environment variables.
@@ -105,7 +127,7 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL_NAME = "gemini-2.0-flash" # Or your desired model
 
 if not API_KEY:
-    logging.error("FATAL ERROR: GEMINI_API_KEY environment variable not set.")
+    logger.error("FATAL ERROR: GEMINI_API_KEY environment variable not set.")
     # In a serverless function, raising an exception is often better than exit()
     # Flask's error handling might catch this, or Vercel might log it.
     # Returning a clear error response is also good practice here.
@@ -135,8 +157,9 @@ try:
     model = genai.GenerativeModel(model_name=MODEL_NAME,
                                   generation_config=generation_config,
                                   safety_settings=safety_settings)
+    logger.info("Successfully initialized Gemini model")
 except Exception as init_error:
-    logging.error(f"Failed to initialize GenerativeModel: {init_error}")
+    logger.error(f"Failed to initialize GenerativeModel: {init_error}")
     model = None # Ensure model is None if initialization fails
 
 # Note: Vercel routes requests based on the filename in the api/ directory.
@@ -149,29 +172,32 @@ except Exception as init_error:
 @app.route('/api/generateBlueprint', methods=['POST'])
 def generate_blueprint_handler():
     if not model:
-         return jsonify({"error": "Model failed to initialize. Check API Key and configuration."}), 500
+        logger.error("Model not initialized. Check API Key and configuration.")
+        return jsonify({"error": "Model failed to initialize. Check API Key and configuration."}), 500
          
     if not request.is_json:
+        logger.warning("Request is not JSON")
         return jsonify({"error": "Request must be JSON"}), 400
 
     data = request.get_json()
     query_text = data.get('query') # Renamed variable for clarity
 
     if not query_text or not isinstance(query_text, str):
+        logger.warning(f"Invalid query: {query_text}")
         return jsonify({"error": 'Missing or invalid "query" in request body.'}), 400
 
     try:
         user_request = f"\n      USER QUERY:\n      \"{query_text}\"\n\n      JSON Output:\n    "
         full_prompt = f"{INSTRUCTIONS}\n{EXAMPLES}\n{user_request}"
 
-        logging.info("Sending prompt to Gemini (Serverless Function)...")
+        logger.info(f"Sending prompt to Gemini for query: {query_text[:50]}...")
         response = model.generate_content(full_prompt)
         response_text = response.text
-        logging.info("Received raw response from Gemini (Serverless Function).")
+        logger.info("Received raw response from Gemini")
 
         # Basic validation
         if '{' not in response_text or '}' not in response_text:
-            logging.error(f"LLM response did not contain JSON object delimiters: {response_text[:500]}...")
+            logger.error(f"LLM response did not contain JSON object delimiters: {response_text[:500]}...")
             raise ValueError("LLM response does not appear to contain JSON.")
 
         # IMPORTANT: Return JSON for frontend compatibility
@@ -179,16 +205,16 @@ def generate_blueprint_handler():
         # We assume the LLM returns a *string* that is valid JSON.
         # We parse it here before sending.
         # If the LLM response isn't valid JSON, this will raise an error.
-        import json
         blueprint_json = json.loads(response_text)
+        logger.info("Successfully parsed JSON response")
         return jsonify(blueprint_json), 200
 
     except json.JSONDecodeError as json_err:
-         logging.error(f"Failed to parse LLM response as JSON: {json_err}")
-         logging.error(f"LLM Raw Response: {response_text}")
-         return jsonify({"error": "Failed to generate blueprint: Invalid format from generation service."}), 500
+        logger.error(f"Failed to parse LLM response as JSON: {json_err}")
+        logger.error(f"LLM Raw Response: {response_text}")
+        return jsonify({"error": "Failed to generate blueprint: Invalid format from generation service."}), 500
     except Exception as e:
-        logging.error(f"Error calling Gemini API or processing response: {e}")
+        logger.error(f"Error calling Gemini API or processing response: {e}")
         # Avoid sending detailed internal errors to the client
         return jsonify({"error": "Failed to generate blueprint: Server error"}), 500
 
@@ -201,7 +227,13 @@ def health_check_handler():
     elif not model:
         status = "ERROR: Model initialization failed"
         
+    logger.info(f"Health check: {status}")
     return jsonify({"status": status}), 200 if status == "OK" else 500
 
 # Vercel runs the Flask app instance named 'app'. No need for app.run() here.
 # The file structure api/index.py makes Vercel treat this as the handler for /api/* 
+
+# For local development
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port) 

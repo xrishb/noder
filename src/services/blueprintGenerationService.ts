@@ -2,7 +2,9 @@
 import { LLMBlueprintData } from '../types/BlueprintTypes';
 
 // Get the API URL from environment variables or use a relative path
-const API_BASE_URL = import.meta.env.VITE_SERVER_URL || '';
+// For Vercel: Use relative path (empty string)
+// For Render: Use the Render URL in production
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 /**
  * Service for generating blueprint data by calling our backend API.
