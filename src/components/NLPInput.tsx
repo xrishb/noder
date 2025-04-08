@@ -32,6 +32,7 @@ export const NLPInput: React.FC<NLPInputProps> = ({
       onLoading(true);
       onError(null); // Clear previous errors
       
+      // Directly use loadBlueprint with the query
       await loadBlueprint(query);
       
       // Call the onGenerationComplete callback if provided

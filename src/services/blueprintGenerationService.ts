@@ -17,7 +17,7 @@ export class BlueprintGenerationService {
    * @returns The raw JSON string response from the backend (expected to be Gemini output).
    * @throws If the API call fails or returns an error status.
    */
-  static async generateFromQuery(query: string): Promise<string> {
+  static async generateFromQuery(query: string): Promise<LLMBlueprintData> {
     console.log("Sending query to backend API...");
     
     // Ensure we have a valid URL
@@ -46,10 +46,25 @@ export class BlueprintGenerationService {
         throw new Error(errorData.error || `Backend API request failed with status ${response.status}`);
       }
 
-      // Return the raw text response from the backend
+      // Get the raw text response
       const rawResponseText = await response.text();
       console.log("Received raw response from Backend API:", rawResponseText);
-      return rawResponseText;
+      
+      // Try to parse it as JSON
+      try {
+        const parsedData = JSON.parse(rawResponseText);
+        return parsedData as LLMBlueprintData;
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        // Try to extract JSON if it's wrapped in other content
+        const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const extractedJson = jsonMatch[0];
+          // Parse and return the extracted JSON
+          return JSON.parse(extractedJson) as LLMBlueprintData;
+        }
+        throw new Error('Response is not valid JSON');
+      }
 
     } catch (error) {
       console.error("Error calling backend /api/generateBlueprint:", error);
