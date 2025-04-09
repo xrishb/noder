@@ -10,13 +10,6 @@ import ReactFlow, {
   BackgroundVariant,
   Controls,
   useReactFlow,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Node,
-  Edge,
-  Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './reactflow-overrides.css'; // Hide ReactFlow attribution
@@ -50,7 +43,6 @@ import { useProjectStore } from '../store/projectStore';
 import { useFileSystemStore } from '../store/fileSystemStore';
 import { useAuth } from '../contexts/AuthContext';
 import { FileExplorer } from './FileExplorer';
-import { auth } from '../services/firebase';
 
 // Define custom node types
 const nodeTypes: NodeTypes = {
@@ -80,27 +72,6 @@ interface FileSystemItem {
 
 // Define props interface for the component
 interface BlueprintEditorProps {}
-
-// Button component
-interface ButtonProps {
-  icon: React.ReactNode;
-  title: string;
-  onClick: () => void;
-  className?: string;
-  disabled?: boolean;
-}
-
-const Button = ({ icon, title, onClick, className, disabled }: ButtonProps) => (
-  <button
-    className={`flex items-center justify-center py-2 px-3 rounded-md text-sm font-sans tracking-wide ${className}`}
-    onClick={onClick}
-    disabled={disabled}
-    title={title}
-  >
-    <span className="mr-2">{icon}</span>
-    <span>{title}</span>
-  </button>
-);
 
 export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -134,10 +105,6 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
     setIsLoading,
     loadBlueprint,
     clearBlueprint,
-    setNodes,
-    setEdges,
-    setBlueprintName,
-    setBlueprintDescription,
   } = useBlueprintStore();
 
   // Access project store to get project name
@@ -816,245 +783,226 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Editor actions
-  const ActionsHeader = () => (
-    <h3 className="text-lg font-sans font-medium tracking-wide">Actions</h3>
-  );
-
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [templatesLoading, setTemplatesLoading] = useState(false);
-
-  // Load templates
-  const handleLoadTemplates = useCallback(async () => {
-    try {
-      setTemplatesLoading(true);
-      const availableTemplates = await BlueprintGenerationService.getTemplates();
-      setTemplates(availableTemplates);
-      setShowTemplates(true);
-      setTemplatesLoading(false);
-    } catch (error) {
-      console.error("Error loading templates:", error);
-      handleError("Failed to load templates");
-      setTemplatesLoading(false);
-    }
-  }, [handleError]);
-
-  // Apply template to canvas
-  const handleApplyTemplate = useCallback((template: any) => {
-    try {
-      if (!template || template.error) {
-        handleError("Invalid template selected");
-        return;
-      }
+  return (
+    <div className="flex h-screen bg-[#0A0A0A] text-white">
+      <FileExplorer
+        projectId={projectId}
+        onFileSelect={handleFileSelect}
+        selectedFileId={currentSelectedFileId}
+        onTogglePanel={setIsPanelOpen}
+        isPanelOpen={isPanelOpen}
+      />
       
-      // Extract nodes and edges from the template
-      const { nodes: templateNodes, edges: templateEdges } = template;
-      
-      if (!templateNodes || !templateEdges) {
-        handleError("Template is missing nodes or edges data");
-        return;
-      }
-      
-      // Apply to the canvas
-      clearBlueprint();
-      setNodes(templateNodes);
-      setEdges(templateEdges);
-      if (template.name) {
-        setBlueprintName(template.name);
-      }
-      if (template.description) {
-        setBlueprintDescription(template.description);
-      }
-      
-      setShowTemplates(false);
-      
-      // Show success message
-      setSuccessMessage("Template applied successfully");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error) {
-      console.error("Error applying template:", error);
-      handleError("Failed to apply template");
-    }
-  }, [clearBlueprint, setNodes, setEdges, setBlueprintName, setBlueprintDescription, handleError]);
-
-  // Templates modal
-  const TemplatesModal = () => {
-    if (!showTemplates) return null;
-    
-    return (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div className="bg-[#0A0A0A] border border-[#333] rounded-lg p-4 max-w-xl w-full max-h-[80vh] overflow-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-sans font-medium tracking-wide text-white">Blueprint Templates</h3>
-            <button
-              onClick={() => setShowTemplates(false)}
-              className="text-gray-400 hover:text-white"
+      <div className="flex-1 flex flex-col">
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 relative h-full">
+            <ReactFlowProvider>
+              <div className="w-full h-full absolute inset-0">
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  onNodesChange={onNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  onConnect={onConnect}
+                  nodeTypes={nodeTypes}
+                  edgeTypes={edgeTypes}
+                  fitView
+                  attribution="false"
+                  onNodeClick={(_, node) => setSelectedNodes([node])}
+                  onEdgeClick={(_, edge) => setSelectedEdges([edge])}
+                  onPaneClick={() => {
+                    setSelectedNodes([]);
+                    setSelectedEdges([]);
+                  }}
+                  className="bg-[#0A0A0A]"
+                  style={{ '--rf-attribution-display': 'none' } as React.CSSProperties}
+                >
+                  <Background variant={BackgroundVariant.Lines} gap={30} size={1} color="#1A1A1A" />
+                  
+                  {/* NLP Input Panel */}
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-4">
+                    <NLPInput onGenerate={handleGenerationComplete} />
+                  </div>
+                  
+                  {/* Beta Indicator */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="px-2 py-1 text-xs font-sans font-medium tracking-wider bg-[#1A1A1A] text-[#4dabf7] border border-[#4dabf7]/30 rounded-md">
+                      Beta 1.0
+                    </div>
+                  </div>
+                  
+                  {/* Floating Menu and Toggle Button */}
+                  {!isSidePanelOpen && (
+                    <div className="absolute top-4 left-4 flex flex-col space-y-2 z-10">
+                      <button
+                        onClick={() => setIsSidePanelOpen(true)}
+                        className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#2A2A2A] text-[#4dabf7] hover:text-white transition-all duration-300 border border-[#4dabf7]/30 hover:border-[#4dabf7]/50 shadow-lg"
+                        title="Show Panel"
+                      >
+                        <LuChevronRight size={20} />
+                      </button>
+                      <button
+                        onClick={() => setIsMenuOpen(true)}
+                        className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#2A2A2A] transition-colors shadow-lg md:hidden"
+                        title="Menu"
+                      >
+                        <LuMenu size={20} />
+                      </button>
+                      <button
+                        onClick={() => navigate('/projects')}
+                        className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#2A2A2A] transition-colors shadow-lg"
+                        title="Back to Projects"
+                      >
+                        <LuArrowLeft size={20} />
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Loading Overlay */}
+                  {isLoading && (
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+                      <div className="flex flex-col items-center">
+                        <LuLoader className="w-8 h-8 text-[#4dabf7] animate-spin mb-2" />
+                        <p className="text-white font-sans tracking-wide">Generating Blueprint...</p>
+                      </div>
+                    </div>
+                  )}
+                </ReactFlow>
+              </div>
+            </ReactFlowProvider>
+          </div>
+        </div>
+        
+        {/* Context Menu */}
+        {contextMenu.visible && (
+          <div 
+            className="fixed z-50 bg-[#1A1A1A] border border-[#333] rounded-md shadow-lg py-1 min-w-[160px]"
+            style={{ 
+              top: contextMenu.y, 
+              left: contextMenu.x,
+              maxHeight: 'calc(100vh - 40px)',
+              overflowY: 'auto'
+            }}
+          >
+            {contextMenu.itemType === 'folder' && (
+              <>
+                <button 
+                  className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#2A2A2A] flex items-center"
+                  onClick={() => handleContextMenuAction('newFile')}
+                >
+                  <LuFilePlus size={14} className="mr-2 text-[#4dabf7]" />
+                  New File
+                </button>
+                <button 
+                  className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#2A2A2A] flex items-center"
+                  onClick={() => handleContextMenuAction('newFolder')}
+                >
+                  <LuFolderPlus size={14} className="mr-2 text-[#4dabf7]" />
+                  New Folder
+                </button>
+                <div className="border-t border-[#333] my-1"></div>
+              </>
+            )}
+            <button 
+              className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#2A2A2A] flex items-center"
+              onClick={() => handleContextMenuAction('rename')}
             >
-              <LuX size={20} />
+              <LuPencil size={14} className="mr-2 text-[#4dabf7]" />
+              Rename
+            </button>
+            <button 
+              className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-900/30 flex items-center"
+              onClick={() => handleContextMenuAction('delete')}
+            >
+              <LuTrash size={14} className="mr-2" />
+              Delete
             </button>
           </div>
-          
-          {templatesLoading ? (
-            <div className="flex justify-center py-8">
-              <span className="loading loading-spinner loading-md text-[#D4AF37]"></span>
-            </div>
-          ) : templates.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No templates available. Save a blueprint as template to see it here.</p>
-          ) : (
-            <div className="grid grid-cols-1 gap-3">
-              {templates.map(template => (
+        )}
+        
+        {/* Mobile Menu Overlay */}
+        {isMenuOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
+            <div className="absolute bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-[#333] p-4 rounded-t-xl">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-sans font-medium tracking-wide">Actions</h3>
                 <button
-                  key={template.id}
-                  className="text-left border border-[#333] rounded-md p-3 hover:border-[#D4AF37] transition-colors"
-                  onClick={() => handleApplyTemplate(template)}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#2A2A2A] transition-colors"
                 >
-                  <h4 className="text-white font-sans font-medium mb-1">{template.name}</h4>
-                  {template.description && (
-                    <p className="text-gray-400 text-sm font-sans">{template.description}</p>
-                  )}
-                  {template.error && (
-                    <p className="text-red-500 text-sm font-sans mt-1">{template.error}</p>
-                  )}
-                  <div className="flex items-center mt-2 text-xs text-gray-500">
-                    <LuFolder className="mr-1" size={12} />
-                    <span className="font-mono">{template.nodes?.length || 0} nodes</span>
-                    <span className="mx-1">•</span>
-                    <LuLayoutGrid className="mr-1" size={12} />
-                    <span className="font-mono">{template.edges?.length || 0} connections</span>
-                  </div>
+                  <LuX size={20} />
                 </button>
-              ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={handleSaveTemplate}
+                  className="flex items-center justify-center space-x-2 p-3 rounded-lg bg-[#4dabf7] hover:bg-[#3a8ac4] transition-colors font-sans tracking-wide"
+                >
+                  <LuSave size={20} />
+                  <span>Save</span>
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="flex items-center justify-center space-x-2 p-3 rounded-lg bg-[#4dabf7] hover:bg-[#3a8ac4] transition-colors font-sans tracking-wide"
+                >
+                  <LuDownload size={20} />
+                  <span>Export</span>
+                </button>
+                <button
+                  onClick={handleClearCanvas}
+                  className="flex items-center justify-center space-x-2 p-3 rounded-lg bg-red-600 hover:bg-red-700 transition-colors font-sans tracking-wide"
+                >
+                  <LuTrash2 size={20} />
+                  <span>Delete</span>
+                </button>
+                <button
+                  onClick={handleAutoArrangeNodes}
+                  className="flex items-center justify-center space-x-2 p-3 rounded-lg bg-[#1A1A1A] hover:bg-[#2A2A2A] transition-colors font-sans tracking-wide"
+                >
+                  <LuLayoutGrid size={20} />
+                  <span>Arrange</span>
+                </button>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // EditorButtons with additional template button
-  const EditorButtons = () => (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full">
-      {!isExportMode && (
-        <>
-          <Button
-            icon={<LuSave size={20} />}
-            title="Save Blueprint"
-            onClick={handleSaveTemplate}
-            className="bg-[#1A1A1A] hover:bg-[#222] text-[#D4AF37] border border-[#333] hover:border-[#D4AF37]"
-          />
-          
-          <Button
-            icon={<LuDownload size={20} />}
-            title="Export Blueprint"
-            onClick={handleExport}
-            className="bg-[#1A1A1A] hover:bg-[#222] text-white border border-[#333] hover:border-[#D4AF37]"
-          />
-          
-          <Button
-            icon={<LuLayoutGrid size={20} />}
-            title="Load Template"
-            onClick={handleLoadTemplates}
-            className="bg-[#1A1A1A] hover:bg-[#222] text-white border border-[#333] hover:border-[#D4AF37]"
-          />
-          
-          <Button
-            icon={<LuTrash2 size={20} />}
-            title="Clear Canvas"
-            onClick={handleClearCanvas}
-            className="bg-[#1A1A1A] hover:bg-[#222] text-white border border-[#333] hover:border-[#D4AF37] col-span-2 md:col-span-3"
-          />
-        </>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="w-full h-full relative bg-[#0A0A0A] flex flex-col">
-      <div className="absolute top-2 right-2 z-10 flex items-center space-x-2">
-        <div className="px-2 py-1 text-xs font-sans font-medium tracking-wider bg-[#1A1A1A] text-[#D4AF37] border border-[#D4AF37]/30 rounded-md">
-          BETA
-        </div>
-      </div>
-
-      {/* Main editor area */}
-      <div className="flex-1 relative">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          onSelectionChange={onSelectionChange}
-          defaultEdgeOptions={defaultEdgeOptions}
-          fitView
-          className="bg-[#050A14]"
-        >
-          <Controls />
-          <Background color="#333" />
-          
-          {/* Sidebar */}
-          <Panel position="top-left" className="bg-[#0A0A0A] border border-[#333] rounded-md p-4 m-2 w-60">
-            <div className="space-y-4">
-              <ActionsHeader />
-              <EditorButtons />
-              
-              {/* Additional controls would go here */}
+          </div>
+        )}
+        
+        {/* Error Message */}
+        {errorMessage && (
+          <div className="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-md">
+            <div className="flex items-start space-x-3">
+              <div className="flex-1">
+                <p className="font-sans font-medium tracking-wide">Error</p>
+                <p className="text-sm font-sans tracking-wide mt-1">{errorMessage}</p>
+              </div>
+              <button
+                onClick={() => setErrorMessage(null)}
+                className="flex-shrink-0 p-1 hover:bg-red-700 rounded-full transition-colors"
+              >
+                <LuX size={16} />
+              </button>
             </div>
-          </Panel>
-          
-          {/* NLP Input */}
-          <Panel position="bottom-center" className="mb-4 w-full max-w-2xl px-4">
-            <NLPInput onGenerate={handleGenerationComplete} onLoading={handleLoading} />
-          </Panel>
-        </ReactFlow>
-
-        {/* File browser */}
-        {!isMobile && (
-          <div 
-            className={`absolute top-0 bottom-0 ${isPanelOpen ? 'right-0' : '-right-80'} w-80 bg-[#0A0A0A] border-l border-[#333] transition-all duration-300 ease-in-out`}
-          >
-            <div className="p-4 h-full">
-              <FileExplorer
-                projectId={projectId}
-                onFileSelect={handleFileSelect}
-                selectedFileId={currentSelectedFileId}
-                onTogglePanel={() => setIsPanelOpen(!isPanelOpen)}
-                isPanelOpen={isPanelOpen}
-              />
+          </div>
+        )}
+        
+        {/* Success Message */}
+        {successMessage && (
+          <div className="fixed bottom-4 right-4 bg-[#4dabf7] text-white p-4 rounded-lg shadow-lg z-50 max-w-md">
+            <div className="flex items-start space-x-3">
+              <div className="flex-1">
+                <p className="font-sans font-medium tracking-wide">Success</p>
+                <p className="text-sm font-sans tracking-wide mt-1">{successMessage}</p>
+              </div>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="flex-shrink-0 p-1 hover:bg-[#3a8ac4] rounded-full transition-colors"
+              >
+                <LuX size={16} />
+              </button>
             </div>
           </div>
         )}
       </div>
-
-      {/* Loading overlay */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-50">
-          <div className="loading loading-spinner loading-lg text-[#D4AF37]"></div>
-          <p className="mt-4 text-white font-sans tracking-wide">Processing...</p>
-        </div>
-      )}
-      
-      {/* Error message */}
-      {errorMessage && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-4 py-3 rounded-md max-w-md w-full backdrop-blur-sm border border-red-700 z-50">
-          <h4 className="font-sans font-medium tracking-wide text-sm mb-1">Error</h4>
-          <p className="text-sm font-sans tracking-wide">{errorMessage}</p>
-        </div>
-      )}
-      
-      {/* Success message */}
-      {successMessage && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#D4AF37]/90 text-black px-4 py-3 rounded-md max-w-md w-full backdrop-blur-sm border border-[#D4AF37] z-50">
-          <h4 className="font-sans font-medium tracking-wide text-sm mb-1">Success</h4>
-          <p className="text-sm font-sans tracking-wide">{successMessage}</p>
-        </div>
-      )}
-      
-      {/* Load templates modal */}
-      <TemplatesModal />
     </div>
   );
 }; 

@@ -1,7 +1,5 @@
 // import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { LLMBlueprintData } from '../types/BlueprintTypes';
-import { createBlueprintFile, getBlueprintTemplates } from './firestore';
-import { auth } from './firebase';
 
 // Get the API URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -104,62 +102,6 @@ export class BlueprintGenerationService {
    */
   static async saveAsTemplate(blueprint: any): Promise<void> {
     console.log("[BlueprintGenerationService] Saving blueprint as template:", blueprint);
-    
-    if (!blueprint || !blueprint.name) {
-      throw new Error("Blueprint must have a name to save as template");
-    }
-    
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      throw new Error("You must be logged in to save templates");
-    }
-    
-    // Find or create Templates folder
-    try {
-      // Save the template to the templates folder
-      await createBlueprintFile({
-        name: `${blueprint.name.replace(/\s+/g, '')}_template.ueblueprint`,
-        content: JSON.stringify(blueprint, null, 2),
-        type: 'file',
-        projectId: 'templates', // Use a special project ID for templates
-        userId: currentUser.uid,
-        isTemplate: true, // Mark as a template
-      });
-      
-      console.log(`[BlueprintGenerationService] Blueprint saved as template: ${blueprint.name}`);
-    } catch (error) {
-      console.error("[BlueprintGenerationService] Failed to save template:", error);
-      throw new Error(`Failed to save template: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * Get available blueprint templates
-   */
-  static async getTemplates(): Promise<any[]> {
-    try {
-      const templates = await getBlueprintTemplates();
-      return templates.map(template => {
-        try {
-          // Parse the content to get the actual blueprint data
-          const blueprintData = JSON.parse(template.content);
-          return {
-            id: template.id,
-            name: template.name,
-            ...blueprintData
-          };
-        } catch (err) {
-          console.error(`Error parsing template ${template.id}:`, err);
-          return {
-            id: template.id,
-            name: template.name,
-            error: 'Invalid template format'
-          };
-        }
-      });
-    } catch (error) {
-      console.error("[BlueprintGenerationService] Failed to get templates:", error);
-      throw new Error(`Failed to get templates: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    // Implementation pending
   }
 } 
