@@ -46,7 +46,7 @@ import { FileExplorer } from './FileExplorer';
 
 // Define custom node types
 const nodeTypes: NodeTypes = {
-  blueprintNode: BlueprintNode,
+  customNode: BlueprintNode,
 };
 
 // Define custom edge types
