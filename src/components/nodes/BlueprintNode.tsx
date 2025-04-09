@@ -26,6 +26,18 @@ const BlueprintNode: React.FC<NodeProps<NodeData>> = memo(({ data, selected, id 
   // Get edges using the correct hook
   const edges = useEdges();
 
+  console.log(`Rendering node ${id} with data:`, data);
+
+  // Make the node resilient to missing data
+  if (!data) {
+    console.error(`Node ${id} has no data`);
+    return (
+      <div className="bg-red-900/90 text-white rounded-lg border border-red-700 p-3">
+        <strong>Error: Missing node data</strong>
+      </div>
+    );
+  }
+
   // Use color from data, default if not provided
   const nodeColor = data.color || '#1E293B'; // Slightly blue-tinted dark
   const headerStyle = {
@@ -34,6 +46,10 @@ const BlueprintNode: React.FC<NodeProps<NodeData>> = memo(({ data, selected, id 
   };
   const borderClass = selected ? 'border-blue-500 shadow-lg shadow-blue-500/20' : 'border-gray-700/50';
 
+  // Ensure inputs and outputs exist
+  const inputs = data.inputs || [];
+  const outputs = data.outputs || [];
+  
   return (
     <div className={`blueprint-node bg-gray-900/90 backdrop-blur-sm text-white rounded-lg border ${borderClass} overflow-hidden min-w-[220px] transition-all duration-200 hover:shadow-xl`}>
       {/* Node Header */}
@@ -41,7 +57,7 @@ const BlueprintNode: React.FC<NodeProps<NodeData>> = memo(({ data, selected, id 
         className="node-header px-3 py-2.5 font-medium text-sm truncate flex items-center justify-between"
         style={headerStyle}
       >
-        <span className="truncate">{data.title}</span>
+        <span className="truncate">{data.title || 'Unnamed Node'}</span>
         {data.subtitle && (
           <span className="text-xs text-gray-300/70 truncate">{data.subtitle}</span>
         )}
@@ -51,7 +67,7 @@ const BlueprintNode: React.FC<NodeProps<NodeData>> = memo(({ data, selected, id 
       <div className="flex justify-between px-2 py-3 bg-gradient-to-b from-gray-800/80 to-gray-900/80"> 
         {/* Input Pins */}
         <div className="pins pins-input p-1 space-y-2.5"> 
-          {data.inputs && data.inputs.map((pin) => {
+          {inputs.map((pin) => {
             const handleId = getPinId(pin.type, pin.name);
             // Determine if this input pin has an incoming connection
             const isConnected = edges.some(edge => edge.target === id && edge.targetHandle === handleId);
@@ -84,7 +100,7 @@ const BlueprintNode: React.FC<NodeProps<NodeData>> = memo(({ data, selected, id 
 
         {/* Output Pins */}
         <div className="pins pins-output p-1 space-y-2.5 flex flex-col items-end"> 
-          {data.outputs && data.outputs.map((pin) => {
+          {outputs.map((pin) => {
             const handleId = getPinId(pin.type, pin.name);
             return (
               <div key={handleId} className="pin flex items-center justify-end text-xs relative group"> 

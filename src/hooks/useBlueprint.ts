@@ -72,27 +72,58 @@ export const useBlueprint = () => {
         const newId = uuidv4();
         idMapping[node.id] = newId;
         
-        console.log('Creating node with type: customNode');
+        // Create a new object to ensure we preserve all properties from the API
+        const nodeData = {
+          ...node,
+          id: newId,
+          subtitle: node.nodeType || '',  // Add subtitle with node type
+          description: node.description || '',  // Preserve description
+          // Ensure inputs and outputs are properly formatted
+          inputs: node.inputs || [],
+          outputs: node.outputs || []
+        };
+        
+        console.log("Creating node:", nodeData);
         
         return {
           id: newId,
           type: 'customNode',
+          // Position will be adjusted by auto-layout
           position: { x: 0, y: 0 },
-          data: {
-            ...node,
-            id: newId,
-          },
+          // Store all the node data in the data property
+          data: nodeData,
         };
       });
 
       // Generate React Flow edges using the correct property names
-      const edges: BlueprintEdge[] = parsedData.connections.map((connection, index) => ({
-        id: uuidv4(),
-        source: idMapping[connection.sourceNodeId],
-        sourceHandle: connection.sourcePinName,
-        target: idMapping[connection.targetNodeId],
-        targetHandle: connection.targetPinName,
-      }));
+      const edges: BlueprintEdge[] = parsedData.connections.map((connection, index) => {
+        // Determine the pin types
+        // Note: Find the node and pin to get its type
+        const sourceNode = parsedData.nodes.find(n => n.id === connection.sourceNodeId);
+        const targetNode = parsedData.nodes.find(n => n.id === connection.targetNodeId);
+        
+        // Find the corresponding output and input pins
+        const sourcePin = sourceNode?.outputs?.find(p => p.name === connection.sourcePinName);
+        const targetPin = targetNode?.inputs?.find(p => p.name === connection.targetPinName);
+        
+        // Get the pin types (default to 'exec' if not found)
+        const sourcePinType = sourcePin?.type || 'exec';
+        const targetPinType = targetPin?.type || 'exec';
+        
+        // Format handle IDs exactly like BlueprintNode.tsx does
+        const sourceHandleId = `${sourcePinType}-${connection.sourcePinName.replace(/\s+|[^a-zA-Z0-9_-]/g, '-').toLowerCase()}`;
+        const targetHandleId = `${targetPinType}-${connection.targetPinName.replace(/\s+|[^a-zA-Z0-9_-]/g, '-').toLowerCase()}`;
+        
+        console.log(`Creating edge: ${sourceHandleId} -> ${targetHandleId}`);
+        
+        return {
+          id: uuidv4(),
+          source: idMapping[connection.sourceNodeId],
+          sourceHandle: sourceHandleId,
+          target: idMapping[connection.targetNodeId],
+          targetHandle: targetHandleId,
+        };
+      });
 
       // Update the store
       store.setBlueprintName(parsedData.blueprintName || 'Untitled Blueprint');
