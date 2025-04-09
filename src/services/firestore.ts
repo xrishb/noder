@@ -316,6 +316,7 @@ export interface BlueprintFile {
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
   userId: string;
+  isTemplate?: boolean; // Whether this is a template blueprint
 }
 
 export const createBlueprintFile = async (file: Omit<BlueprintFile, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -365,6 +366,28 @@ export const getBlueprintFiles = async (projectId: string) => {
     })) as BlueprintFile[];
   } catch (error) {
     console.error('Error getting blueprint files:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get blueprint templates
+ * @returns Array of blueprint templates
+ */
+export const getBlueprintTemplates = async () => {
+  try {
+    const templatesQuery = query(
+      collection(firestore, COLLECTIONS.FILES),
+      where('isTemplate', '==', true)
+    );
+    
+    const querySnapshot = await getDocs(templatesQuery);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as BlueprintFile[];
+  } catch (error) {
+    console.error('Error getting blueprint templates:', error);
     throw error;
   }
 };
