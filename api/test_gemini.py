@@ -112,3 +112,6 @@ if __name__ == "__main__":
         success = test_gemini_api(query)
         print(f"Test result: {'SUCCESS' if success else 'FAILURE'}")
         print("-" * 50) 
+ 
+ 
+ 

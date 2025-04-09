@@ -74,7 +74,7 @@ export const useBlueprint = () => {
         
         return {
           id: newId,
-          type: 'customNode',
+          type: 'blueprintNode',
           position: { x: 0, y: 0 },
           data: {
             ...node,
