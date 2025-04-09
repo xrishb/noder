@@ -340,9 +340,8 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
 
   // Handle file selection
   const handleFileSelect = (fileId: string) => {
-    // Toggle selection if already selected
+    // Check if already selected - if so, do nothing
     if (currentSelectedFileId === fileId) {
-      selectFile(null);
       return;
     }
     
@@ -360,10 +359,12 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
         
         // Automatically load the blueprint into the editor
         clearBlueprint(); // Clear first to avoid mixing nodes
+        
+        // Use setTimeout to ensure the UI is updated properly
         setTimeout(() => {
           loadBlueprint(blueprintData);
           // Show success message
-          setSuccessMessage(`Loaded ${file.name}`);
+          setSuccessMessage(`Loaded ${file.name.replace(/\.ueblueprint$/, '')}`);
           // Clear success message after 3 seconds
           setTimeout(() => {
             setSuccessMessage(null);
@@ -400,13 +401,16 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
       setIsLoading(true);
       
       if (isCreatingFile) {
-        // Create a new file
+        // Create a new file - always add .ueblueprint extension but don't show in UI
+        const fileName = newItemName.trim();
+        const fileNameWithExt = fileName.endsWith('.ueblueprint') 
+          ? fileName 
+          : `${fileName}.ueblueprint`;
+          
         await createFile({
-          name: newItemName.trim().endsWith('.ueblueprint') 
-            ? newItemName.trim() 
-            : `${newItemName.trim()}.ueblueprint`,
+          name: fileNameWithExt,
           content: JSON.stringify({
-            name: newItemName.trim(),
+            name: fileName, // Store the name without extension
             description: "",
             nodes: [],
             edges: []
@@ -417,8 +421,8 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
           userId: currentUser.uid
         });
         
-        // Show success message
-        setSuccessMessage(`Created file: ${newItemName.trim()}`);
+        // Show success message without extension
+        setSuccessMessage(`Created file: ${fileName}`);
       } else if (isCreatingFolder) {
         // Create a new folder
         await createFile({
@@ -529,10 +533,27 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
     const verticalGap = 100;
     const nodesPerRow = Math.ceil(Math.sqrt(nodesCopy.length));
     
-    // Arrange nodes in a grid
-    const arrangedNodes = nodesCopy.map((node, index) => {
-      const row = Math.floor(index / nodesPerRow);
-      const col = index % nodesPerRow;
+    // Filter nodes with default positions (0,0)
+    const defaultPositionNodes = nodesCopy.filter(node => 
+      node.position.x === 0 && node.position.y === 0
+    );
+    
+    // Keep track of positioned nodes to avoid overlap
+    const positionedNodes = nodesCopy.filter(node => 
+      node.position.x !== 0 || node.position.y !== 0
+    );
+    
+    // Arrange only nodes with default positions
+    let gridIndex = 0;
+    const arrangedNodes = nodesCopy.map(node => {
+      // Skip nodes that already have non-default positions
+      if (node.position.x !== 0 || node.position.y !== 0) {
+        return node;
+      }
+      
+      const row = Math.floor(gridIndex / nodesPerRow);
+      const col = gridIndex % nodesPerRow;
+      gridIndex++;
       
       return {
         ...node,
@@ -733,7 +754,15 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = () => {
     // Only auto-arrange if number of nodes increased (new nodes added)
     // and not during loading or current arrangement
     if (nodes.length > prevNodeCountRef.current && !isLoading && !isArranging) {
-      handleAutoArrangeNodes();
+      // Only auto-arrange if at least one node has default (0,0) position
+      const hasDefaultPositions = nodes.some(node => 
+        node.position.x === 0 && node.position.y === 0
+      );
+      
+      if (hasDefaultPositions) {
+        console.log('Auto-arranging nodes with default positions');
+        handleAutoArrangeNodes();
+      }
     }
     
     // Update the previous count reference

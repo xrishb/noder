@@ -390,45 +390,41 @@ export const updateBlueprintFile = async (fileId: string, data: Partial<Blueprin
 
 export const deleteBlueprintFile = async (fileId: string, recursive = true) => {
   try {
-    const fileRef = doc(firestore, COLLECTIONS.FILES, fileId);
-    const fileDoc = await getDoc(fileRef);
-    
+    // Get the file to check if it's a folder
+    const fileDoc = await getDoc(doc(firestore, COLLECTIONS.FILES, fileId));
     if (!fileDoc.exists()) {
-      throw new Error('File not found');
+      console.warn(`File ${fileId} not found, already deleted?`);
+      return;
     }
     
     const fileData = fileDoc.data() as BlueprintFile;
     
-    // If it's a folder and recursive is true, delete all children
-    if (fileData.type === 'folder' && recursive && fileData.children && fileData.children.length > 0) {
-      // Delete all children first
-      for (const childId of fileData.children) {
-        await deleteBlueprintFile(childId, recursive);
-      }
-    }
-    
-    // If this is a child of a folder, update the parent
-    if (fileData.parentId) {
-      const parentRef = doc(firestore, COLLECTIONS.FILES, fileData.parentId);
-      const parentDoc = await getDoc(parentRef);
+    // If it's a folder and recursive is true, delete all children first
+    if (fileData.type === 'folder' && recursive) {
+      console.log(`Deleting folder ${fileId} and its contents recursively`);
       
-      if (parentDoc.exists()) {
-        const parentData = parentDoc.data() as BlueprintFile;
-        if (parentData.children && parentData.children.includes(fileId)) {
-          await updateDoc(parentRef, {
-            children: parentData.children.filter(id => id !== fileId),
-            updatedAt: serverTimestamp()
-          });
-        }
-      }
+      // Get all files that have this folder as parent
+      const childrenQuery = query(
+        collection(firestore, COLLECTIONS.FILES),
+        where('parentId', '==', fileId)
+      );
+      
+      const childrenSnapshot = await getDocs(childrenQuery);
+      
+      // Delete each child
+      const deletePromises = childrenSnapshot.docs.map(doc => 
+        deleteBlueprintFile(doc.id, recursive)
+      );
+      
+      await Promise.all(deletePromises);
     }
     
-    // Finally delete the file itself
-    await deleteDoc(fileRef);
+    // Now delete the file itself
+    console.log(`Deleting file ${fileId}`);
+    await deleteDoc(doc(firestore, COLLECTIONS.FILES, fileId));
     
-    return true;
   } catch (error) {
-    console.error('Error deleting blueprint file:', error);
+    console.error('Error deleting file:', error);
     throw error;
   }
 }; 

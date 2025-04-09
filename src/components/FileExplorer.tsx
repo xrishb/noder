@@ -335,10 +335,15 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           ) : (
             <>
               <div className="w-4 mr-1" />
-              <LuFile className="w-4 h-4 mr-2 text-gray-400" />
+              <LuFile className={`mr-2 ${selectedFileId === item.id ? 'text-[#4dabf7]' : 'text-[#4dabf7]/60'}`} size={16} />
             </>
           )}
-          <span className="text-sm font-sans font-medium truncate">{item.name}</span>
+          <span 
+            className="flex-1 truncate cursor-pointer hover:text-white font-sans tracking-wide"
+            onClick={() => onFileSelect(item.id)}
+          >
+            {item.name.replace(/\.ueblueprint$/, '')}
+          </span>
           <button
             className="ml-auto opacity-0 hover:opacity-100 transition-opacity text-gray-400 hover:text-[#4dabf7]"
             onClick={(e) => {

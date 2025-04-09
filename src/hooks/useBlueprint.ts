@@ -88,8 +88,8 @@ export const useBlueprint = () => {
         return {
           id: newId,
           type: 'customNode',
-          // Position will be adjusted by auto-layout
-          position: { x: 0, y: 0 },
+          // Use existing position if available, otherwise start at 0,0 and auto-layout will adjust
+          position: node.position || { x: 0, y: 0 },
           // Store all the node data in the data property
           data: nodeData,
         };
@@ -156,12 +156,13 @@ export const useBlueprint = () => {
         outputs: node.data.outputs,
         description: node.data.description,
         color: node.data.color,
+        position: node.position, // Include node position for layout preservation
       })),
       connections: store.edges.map(edge => ({
         sourceNodeId: edge.source,
         targetNodeId: edge.target,
-        sourcePinName: edge.sourceHandle?.split('-')[1] || '',
-        targetPinName: edge.targetHandle?.split('-')[1] || '',
+        sourcePinName: edge.sourceHandle?.split('-').slice(1).join('-') || '',
+        targetPinName: edge.targetHandle?.split('-').slice(1).join('-') || '',
       })),
     };
   }, [store.blueprintName, store.blueprintDescription, store.nodes, store.edges]);
