@@ -72,9 +72,11 @@ export const useBlueprint = () => {
         const newId = uuidv4();
         idMapping[node.id] = newId;
         
+        console.log('Creating node with type: customNode');
+        
         return {
           id: newId,
-          type: 'blueprintNode',
+          type: 'customNode',
           position: { x: 0, y: 0 },
           data: {
             ...node,
