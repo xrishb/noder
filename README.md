@@ -1,6 +1,5 @@
 # Noder
 
-![Noder Logo](public/favicon.svg)
 
 Noder is an AI-powered platform that transforms natural language into production-ready Unreal Engine 5 Blueprints. It allows game developers to generate complex blueprint diagrams through simple text descriptions, significantly reducing development time and technical barriers.
 
